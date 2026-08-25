@@ -4,14 +4,15 @@
 }
 
     .dashboard-header h1 {
-        font-size: 22px;
-        font-weight: 600;
-        color: #0f172a;
+        font-family: var(--fonte-display);
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--cor-texto);
         margin: 0;
     }
 
     .dashboard-header p {
-        color: #64748b;
+        color: var(--cor-texto-suave);
         font-size: 14px;
         margin: 4px 0 0;
     }
@@ -25,8 +26,8 @@
 }
 
 .metric-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--cor-superficie);
+    border: 1px solid var(--cor-borda);
     border-radius: 10px;
     padding: 20px;
     display: flex;
@@ -36,15 +37,16 @@
 
 .metric-label {
     font-size: 12px;
-    color: #64748b;
+    color: var(--cor-texto-suave);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .metric-value {
-    font-size: 26px;
-    font-weight: 600;
-    color: #0f172a;
+    font-family: var(--fonte-display);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--cor-texto);
 }
 
 .metric-delta {
@@ -52,11 +54,11 @@
 }
 
     .metric-delta.positivo {
-        color: #16a34a;
+        color: var(--cor-sucesso);
     }
 
     .metric-delta.negativo {
-        color: #dc2626;
+        color: var(--cor-erro);
     }
 
 .dashboard-row {
@@ -64,8 +66,8 @@
 }
 
 .painel {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--cor-superficie);
+    border: 1px solid var(--cor-borda);
     border-radius: 10px;
     padding: 20px 24px;
 }
@@ -73,7 +75,7 @@
 .painel-titulo {
     font-size: 13px;
     font-weight: 600;
-    color: #64748b;
+    color: var(--cor-texto-suave);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin: 0 0 16px;
@@ -88,19 +90,24 @@
     .tabela th {
         text-align: left;
         font-size: 12px;
-        color: #94a3b8;
+        color: var(--cor-texto-fraco);
         font-weight: 500;
         padding: 0 0 10px;
-        border-bottom: 1px solid #f1f5f9;
+        border-bottom: 1px solid var(--cor-borda);
         text-transform: uppercase;
         letter-spacing: 0.3px;
     }
 
     .tabela td {
         padding: 12px 0;
-        border-bottom: 1px solid #f8fafc;
-        color: #334155;
+        border-bottom: 1px solid var(--cor-borda);
+        color: var(--cor-texto);
     }
+
+        .tabela td.mono {
+            font-family: var(--fonte-mono);
+            font-size: 13px;
+        }
 
 .status {
     display: inline-block;
@@ -111,16 +118,16 @@
 }
 
     .status.pago {
-        background: #dcfce7;
-        color: #15803d;
+        background: var(--cor-sucesso-bg);
+        color: var(--cor-sucesso);
     }
 
     .status.pendente {
-        background: #fef9c3;
-        color: #a16207;
+        background: var(--cor-alerta-bg);
+        color: var(--cor-alerta);
     }
 
     .status.cancelado {
-        background: #fee2e2;
-        color: #b91c1c;
+        background: var(--cor-erro-bg);
+        color: var(--cor-erro);
     }

@@ -57,7 +57,7 @@
                 @foreach (var ordem in Model.UltimasOrdens)
                 {
                     <tr>
-                        <td>#@ordem.Id</td>
+                        <td class="mono">#@ordem.Id</td>
                         <td>@ordem.ClienteNome</td>
                         <td>R$ @ordem.ValorTotal.ToString("N2")</td>
                         <td>

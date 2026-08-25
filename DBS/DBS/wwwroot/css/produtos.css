@@ -12,21 +12,22 @@
 }
 
     .page-header h1 {
+        font-family: var(--fonte-display);
         font-size: 24px;
         font-weight: 700;
-        color: #0f172a;
+        color: var(--cor-texto);
         margin: 0;
     }
 
     .page-header span {
         font-size: 14px;
-        color: #64748b;
+        color: var(--cor-texto-suave);
         display: block;
         margin-top: 2px;
     }
 
 .btn-novo {
-    background: #1e40af;
+    background: var(--cor-accent);
     color: #ffffff;
     border: none;
     padding: 10px 20px;
@@ -38,7 +39,7 @@
 }
 
     .btn-novo:hover {
-        background: #1d3a9e;
+        background: #0f766e;
     }
 
 .barra-busca {
@@ -50,33 +51,33 @@
     .barra-busca input {
         flex: 1;
         padding: 10px 16px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--cor-borda);
         border-radius: 8px;
         font-size: 14px;
-        color: #0f172a;
-        background: #ffffff;
+        color: var(--cor-texto);
+        background: var(--cor-superficie);
         outline: none;
         transition: border 0.2s;
     }
 
         .barra-busca input:focus {
-            border-color: #1e40af;
+            border-color: var(--cor-accent);
         }
 
     .barra-busca select {
         padding: 10px 16px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--cor-borda);
         border-radius: 8px;
         font-size: 14px;
-        color: #64748b;
-        background: #ffffff;
+        color: var(--cor-texto-suave);
+        background: var(--cor-superficie);
         outline: none;
         cursor: pointer;
     }
 
 .painel {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--cor-superficie);
+    border: 1px solid var(--cor-borda);
     border-radius: 12px;
     padding: 24px;
 }
@@ -90,18 +91,18 @@
     .tabela th {
         text-align: left;
         font-size: 11px;
-        color: #94a3b8;
+        color: var(--cor-texto-fraco);
         font-weight: 600;
         padding-bottom: 12px;
-        border-bottom: 1px solid #f1f5f9;
+        border-bottom: 1px solid var(--cor-borda);
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
 
     .tabela td {
         padding: 13px 0;
-        border-bottom: 1px solid #f8fafc;
-        color: #334155;
+        border-bottom: 1px solid var(--cor-borda);
+        color: var(--cor-texto);
     }
 
     .tabela tbody tr:last-child td {
@@ -109,7 +110,7 @@
     }
 
     .tabela tbody tr:hover td {
-        background: #f8fafc;
+        background: var(--cor-fundo);
     }
 
 .status {
@@ -121,48 +122,47 @@
 }
 
     .status.disponivel {
-        background: #dcfce7;
-        color: #15803d;
+        background: var(--cor-sucesso-bg);
+        color: var(--cor-sucesso);
     }
 
     .status.indisponivel {
-        background: #fee2e2;
-        color: #b91c1c;
+        background: var(--cor-erro-bg);
+        color: var(--cor-erro);
     }
 
     .status.baixo-estoque {
-        background: #fef9c3;
-        color: #a16207;
+        background: var(--cor-alerta-bg);
+        color: var(--cor-alerta);
     }
 
 .estoque-baixo {
-    color: #dc2626;
+    color: var(--cor-erro);
     font-weight: 600;
 }
 
 .btn-acao {
     background: none;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--cor-borda);
     border-radius: 6px;
     padding: 5px 12px;
     font-size: 12px;
-    color: #64748b;
+    color: var(--cor-texto-suave);
     cursor: pointer;
     transition: all 0.15s;
     margin-right: 4px;
 }
 
     .btn-acao.editar:hover {
-        border-color: #1e40af;
-        color: #1e40af;
+        border-color: var(--cor-accent);
+        color: var(--cor-accent);
     }
 
     .btn-acao.excluir:hover {
-        border-color: #dc2626;
-        color: #dc2626;
+        border-color: var(--cor-erro);
+        color: var(--cor-erro);
     }
 
-/* Modal */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -181,7 +181,7 @@
     }
 
 .modal {
-    background: #ffffff;
+    background: var(--cor-superficie);
     border-radius: 14px;
     padding: 32px;
     width: 100%;
@@ -199,7 +199,7 @@
     .modal-header h2 {
         font-size: 18px;
         font-weight: 700;
-        color: #0f172a;
+        color: var(--cor-texto);
         margin: 0;
     }
 
@@ -207,12 +207,12 @@
     background: none;
     border: none;
     font-size: 22px;
-    color: #94a3b8;
+    color: var(--cor-texto-fraco);
     cursor: pointer;
 }
 
     .modal-fechar:hover {
-        color: #0f172a;
+        color: var(--cor-texto);
     }
 
 .form-grupo {
@@ -225,26 +225,22 @@
     .form-grupo label {
         font-size: 13px;
         font-weight: 600;
-        color: #374151;
+        color: var(--cor-texto-suave);
     }
 
-    .form-grupo input,
-    .form-grupo select,
-    .form-grupo textarea {
+    .form-grupo input, .form-grupo select, .form-grupo textarea {
         padding: 10px 14px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--cor-borda);
         border-radius: 8px;
         font-size: 14px;
-        color: #0f172a;
+        color: var(--cor-texto);
         outline: none;
         transition: border 0.2s;
         font-family: inherit;
     }
 
-        .form-grupo input:focus,
-        .form-grupo select:focus,
-        .form-grupo textarea:focus {
-            border-color: #1e40af;
+        .form-grupo input:focus, .form-grupo select:focus, .form-grupo textarea:focus {
+            border-color: var(--cor-accent);
         }
 
     .form-grupo textarea {
@@ -267,23 +263,23 @@
 
 .btn-cancelar {
     padding: 10px 20px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--cor-borda);
     border-radius: 8px;
     background: none;
     font-size: 14px;
-    color: #64748b;
+    color: var(--cor-texto-suave);
     cursor: pointer;
 }
 
     .btn-cancelar:hover {
-        background: #f1f5f9;
+        background: var(--cor-fundo);
     }
 
 .btn-salvar {
     padding: 10px 20px;
     border: none;
     border-radius: 8px;
-    background: #1e40af;
+    background: var(--cor-accent);
     color: #fff;
     font-size: 14px;
     font-weight: 600;
@@ -291,5 +287,5 @@
 }
 
     .btn-salvar:hover {
-        background: #1d3a9e;
+        background: #0f766e;
     }
