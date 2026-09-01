@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DbsErpMobile.Views.ProdutoListPage"
+             Title="Produtos">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Carrinho" Clicked="OnCarrinhoClicked" />
+    </ContentPage.ToolbarItems>
+    
+    <CollectionView x:Name="ProdutosCollectionView">
+        <CollectionView.ItemTemplate>
+            <DataTemplate>
+                <Grid Padding="15" ColumnDefinitions="*, Auto">
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnProdutoTapped" />
+                    </Grid.GestureRecognizers>
+                    <VerticalStackLayout Grid.Column="0">
+                        <Label Text="{Binding Nome}" FontAttributes="Bold" FontSize="16" />
+                        <Label Text="{Binding Descricao}" FontSize="12" TextColor="Gray" />
+                        <Label Text="{Binding Estoque, StringFormat='Estoque: {0}'}" FontSize="12" />
+                    </VerticalStackLayout>
+                    <Label Grid.Column="1" 
+                           Text="{Binding Preco, StringFormat='R$ {0:F2}'}" 
+                           VerticalOptions="Center" 
+                           FontAttributes="Bold" />
+                </Grid>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+
+</ContentPage>

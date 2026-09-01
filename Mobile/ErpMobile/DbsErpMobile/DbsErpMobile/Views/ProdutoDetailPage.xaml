@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DbsErpMobile.Views.ProdutoDetailPage"
+             Title="Detalhe do Produto">
+
+    <VerticalStackLayout Padding="20" Spacing="15">
+        <Label x:Name="NomeLabel" FontSize="22" FontAttributes="Bold" />
+        <Label x:Name="DescricaoLabel" FontSize="14" TextColor="Gray" />
+        <Label x:Name="PrecoLabel" FontSize="20" FontAttributes="Bold" />
+        <Label x:Name="EstoqueLabel" FontSize="14" />
+
+        <HorizontalStackLayout Spacing="15" Margin="0,20,0,0">
+            <Button Text="-" WidthRequest="50" Clicked="OnDiminuirClicked" />
+            <Label x:Name="QuantidadeLabel" Text="1" FontSize="20" VerticalOptions="Center" />
+            <Button Text="+" WidthRequest="50" Clicked="OnAumentarClicked" />
+        </HorizontalStackLayout>
+
+        <Button Text="Adicionar ao Carrinho" Clicked="OnAdicionarClicked" Margin="0,20,0,0" />
+    </VerticalStackLayout>
+
+</ContentPage>
