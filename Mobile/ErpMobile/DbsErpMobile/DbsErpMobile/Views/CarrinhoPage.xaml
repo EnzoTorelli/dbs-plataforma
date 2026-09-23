@@ -1,32 +1,253 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="DbsErpMobile.Views.CarrinhoPage"
-             Title="Carrinho">
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="DbsErpMobile.Views.CarrinhoPage"
+    BackgroundColor="#F4F7FB"
+    NavigationPage.HasNavigationBar="False">
 
-    <Grid RowDefinitions="*, Auto" Padding="15">
+    <Grid RowDefinitions="Auto,*,Auto">
 
-        <CollectionView x:Name="ItensCollectionView" Grid.Row="0">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Grid Padding="10" ColumnDefinitions="*, Auto">
-                        <VerticalStackLayout Grid.Column="0">
-                            <Label Text="{Binding NomeProduto}" FontAttributes="Bold" FontSize="16" />
-                            <Label Text="{Binding Quantidade, StringFormat='Qtd: {0}'}" FontSize="12" />
-                        </VerticalStackLayout>
-                        <Label Grid.Column="1" 
-                               Text="{Binding Subtotal, StringFormat='R$ {0:F2}'}" 
-                               VerticalOptions="Center" 
-                               FontAttributes="Bold" />
-                    </Grid>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+        <!-- CABEÇALHO -->
+        <Grid
+            Grid.Row="0"
+            BackgroundColor="#0B1F3A"
+            Padding="20,18,20,16">
 
-        <VerticalStackLayout Grid.Row="1" Spacing="10" Margin="0,15,0,0">
-            <Label x:Name="TotalLabel" FontSize="20" FontAttributes="Bold" HorizontalOptions="End" />
-            <Button Text="Finalizar Pedido" Clicked="OnFinalizarClicked" />
-        </VerticalStackLayout>
+            <VerticalStackLayout
+                HorizontalOptions="Center"
+                Spacing="2">
+
+                <!-- Espaço reservado para a logo -->
+                <Label
+                    Text="DBS ERP"
+                    TextColor="White"
+                    FontSize="22"
+                    FontAttributes="Bold"
+                    HorizontalOptions="Center" />
+
+                <Label
+                    Text="Seu carrinho"
+                    TextColor="#9CCBFF"
+                    FontSize="12"
+                    HorizontalOptions="Center" />
+
+            </VerticalStackLayout>
+
+        </Grid>
+
+        <!-- CONTEÚDO -->
+        <Grid
+            Grid.Row="1"
+            Padding="20,22,20,10">
+
+            <CollectionView
+                x:Name="ItensCollectionView"
+                SelectionMode="None">
+
+                <CollectionView.EmptyView>
+
+                    <VerticalStackLayout
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"
+                        Spacing="10">
+
+                        <Label
+                            Text="🛒"
+                            FontSize="55"
+                            HorizontalOptions="Center" />
+
+                        <Label
+                            Text="Seu carrinho está vazio"
+                            TextColor="#0B1F3A"
+                            FontSize="20"
+                            FontAttributes="Bold"
+                            HorizontalOptions="Center" />
+
+                        <Label
+                            Text="Adicione produtos para continuar"
+                            TextColor="#718096"
+                            FontSize="13"
+                            HorizontalOptions="Center" />
+
+                    </VerticalStackLayout>
+
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemsLayout>
+
+                    <LinearItemsLayout
+                        Orientation="Vertical"
+                        ItemSpacing="14" />
+
+                </CollectionView.ItemsLayout>
+
+                <CollectionView.ItemTemplate>
+
+                    <DataTemplate>
+
+                        <Border
+                            BackgroundColor="White"
+                            Stroke="#E5EAF0"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="16">
+
+                            <Grid
+                                ColumnDefinitions="58,*,Auto"
+                                ColumnSpacing="14">
+
+                                <!-- ÍCONE DO PRODUTO -->
+                                <Border
+                                    Grid.Column="0"
+                                    WidthRequest="58"
+                                    HeightRequest="58"
+                                    BackgroundColor="#EAF4FF"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14">
+
+                                    <Label
+                                        Text="📦"
+                                        FontSize="27"
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center" />
+
+                                </Border>
+
+                                <!-- INFORMAÇÕES -->
+                                <VerticalStackLayout
+                                    Grid.Column="1"
+                                    VerticalOptions="Center"
+                                    Spacing="5">
+
+                                    <Label
+                                        Text="{Binding NomeProduto}"
+                                        TextColor="#0B1F3A"
+                                        FontSize="15"
+                                        FontAttributes="Bold"
+                                        LineBreakMode="TailTruncation" />
+
+                                    <Label
+                                        Text="{Binding Quantidade, StringFormat='Quantidade: {0}'}"
+                                        TextColor="#718096"
+                                        FontSize="12" />
+
+                                </VerticalStackLayout>
+
+                                <!-- SUBTOTAL -->
+                                <VerticalStackLayout
+                                    Grid.Column="2"
+                                    VerticalOptions="Center"
+                                    HorizontalOptions="End"
+                                    Spacing="2">
+
+                                    <Label
+                                        Text="Subtotal"
+                                        TextColor="#8A94A6"
+                                        FontSize="10"
+                                        HorizontalOptions="End" />
+
+                                    <Label
+                                        Text="{Binding Subtotal, StringFormat='R$ {0:F2}'}"
+                                        TextColor="#0B1F3A"
+                                        FontSize="15"
+                                        FontAttributes="Bold"
+                                        HorizontalOptions="End" />
+
+                                </VerticalStackLayout>
+
+                            </Grid>
+
+                        </Border>
+
+                    </DataTemplate>
+
+                </CollectionView.ItemTemplate>
+
+            </CollectionView>
+
+        </Grid>
+
+        <!-- RESUMO DO PEDIDO -->
+        <Border
+            Grid.Row="2"
+            BackgroundColor="White"
+            Stroke="#E5EAF0"
+            StrokeThickness="1"
+            StrokeShape="RoundRectangle 22,22,0,0"
+            Padding="20,18,20,22">
+
+            <VerticalStackLayout Spacing="14">
+
+                <Grid ColumnDefinitions="*,Auto">
+
+                    <VerticalStackLayout
+                        Grid.Column="0"
+                        Spacing="2">
+
+                        <Label
+                            Text="Total do pedido"
+                            TextColor="#718096"
+                            FontSize="12" />
+
+                        <Label
+                            Text="Valor total"
+                            TextColor="#0B1F3A"
+                            FontSize="17"
+                            FontAttributes="Bold" />
+
+                    </VerticalStackLayout>
+
+                    <Label
+                        x:Name="TotalLabel"
+                        Grid.Column="1"
+                        TextColor="#0B1F3A"
+                        FontSize="23"
+                        FontAttributes="Bold"
+                        VerticalOptions="Center" />
+
+                </Grid>
+
+                <!-- BOTÃO FINALIZAR -->
+                <Border
+                    BackgroundColor="#1E88E5"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 16"
+                    HeightRequest="56">
+
+                    <Border.GestureRecognizers>
+
+                        <TapGestureRecognizer
+                            Tapped="OnFinalizarClicked" />
+
+                    </Border.GestureRecognizers>
+
+                    <HorizontalStackLayout
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"
+                        Spacing="9">
+
+                        <Label
+                            Text="✓"
+                            TextColor="White"
+                            FontSize="20"
+                            FontAttributes="Bold"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Text="Finalizar Pedido"
+                            TextColor="White"
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            VerticalOptions="Center" />
+
+                    </HorizontalStackLayout>
+
+                </Border>
+
+            </VerticalStackLayout>
+
+        </Border>
 
     </Grid>
 

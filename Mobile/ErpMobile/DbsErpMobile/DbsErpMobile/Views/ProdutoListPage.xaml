@@ -1,31 +1,257 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="DbsErpMobile.Views.ProdutoListPage"
-             Title="Produtos">
-    <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Carrinho" Clicked="OnCarrinhoClicked" />
-    </ContentPage.ToolbarItems>
-    
-    <CollectionView x:Name="ProdutosCollectionView">
-        <CollectionView.ItemTemplate>
-            <DataTemplate>
-                <Grid Padding="15" ColumnDefinitions="*, Auto">
-                    <Grid.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnProdutoTapped" />
-                    </Grid.GestureRecognizers>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="DbsErpMobile.Views.ProdutoListPage"
+    BackgroundColor="#F4F7FB"
+    NavigationPage.HasNavigationBar="False">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- CABEÇALHO -->
+        <Grid
+            Grid.Row="0"
+            BackgroundColor="#0B1F3A"
+            Padding="20,18,20,16"
+            RowDefinitions="Auto,Auto">
+
+            <!-- Espaço reservado para a logo -->
+            <Label
+                Text="DBS ERP"
+                Grid.Row="0"
+                HorizontalOptions="Center"
+                TextColor="White"
+                FontSize="22"
+                FontAttributes="Bold"
+                Margin="0,4,0,18" />
+
+            <Grid
+                Grid.Row="1"
+                ColumnDefinitions="*,Auto"
+                ColumnSpacing="15">
+
+                <VerticalStackLayout
+                    Grid.Column="0"
+                    Spacing="2">
+
+                    <Label
+                        Text="Olá!"
+                        TextColor="#9CCBFF"
+                        FontSize="14" />
+
+                    <Label
+                        Text="Encontre seus produtos"
+                        TextColor="White"
+                        FontSize="21"
+                        FontAttributes="Bold" />
+
+                </VerticalStackLayout>
+
+                <!-- CARRINHO -->
+                <Border
+                    Grid.Column="1"
+                    WidthRequest="48"
+                    HeightRequest="48"
+                    StrokeThickness="0"
+                    BackgroundColor="#1E88E5"
+                    StrokeShape="RoundRectangle 14"
+                    VerticalOptions="Center">
+
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnCarrinhoClicked" />
+                    </Border.GestureRecognizers>
+
+                    <Label
+                        Text="🛒"
+                        FontSize="22"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center" />
+
+                </Border>
+
+            </Grid>
+
+        </Grid>
+
+        <!-- CONTEÚDO -->
+        <ScrollView Grid.Row="1">
+
+            <VerticalStackLayout
+                Padding="20,22,20,30"
+                Spacing="18">
+
+                <!-- TÍTULO -->
+                <Grid ColumnDefinitions="*,Auto">
+
                     <VerticalStackLayout Grid.Column="0">
-                        <Label Text="{Binding Nome}" FontAttributes="Bold" FontSize="16" />
-                        <Label Text="{Binding Descricao}" FontSize="12" TextColor="Gray" />
-                        <Label Text="{Binding Estoque, StringFormat='Estoque: {0}'}" FontSize="12" />
+
+                        <Label
+                            Text="Produtos"
+                            TextColor="#0B1F3A"
+                            FontSize="24"
+                            FontAttributes="Bold" />
+
+                        <Label
+                            Text="Confira nosso catálogo"
+                            TextColor="#718096"
+                            FontSize="13"
+                            Margin="0,3,0,0" />
+
                     </VerticalStackLayout>
-                    <Label Grid.Column="1" 
-                           Text="{Binding Preco, StringFormat='R$ {0:F2}'}" 
-                           VerticalOptions="Center" 
-                           FontAttributes="Bold" />
+
                 </Grid>
-            </DataTemplate>
-        </CollectionView.ItemTemplate>
-    </CollectionView>
+
+                <!-- LISTA DE PRODUTOS -->
+                <CollectionView
+                    x:Name="ProdutosCollectionView"
+                    SelectionMode="None">
+
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout
+                            Orientation="Vertical"
+                            ItemSpacing="14" />
+                    </CollectionView.ItemsLayout>
+
+                    <CollectionView.ItemTemplate>
+
+                        <DataTemplate>
+
+                            <Border
+                                BackgroundColor="White"
+                                Stroke="#E5EAF0"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 18"
+                                Padding="0">
+
+                                <Border.Shadow>
+                                    <Shadow
+                                        Brush="#20000000"
+                                        Offset="0,4"
+                                        Radius="12"
+                                        Opacity="0.18" />
+                                </Border.Shadow>
+
+                                <Grid
+                                    Padding="16"
+                                    RowDefinitions="Auto,Auto,Auto"
+                                    RowSpacing="12">
+
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Tapped="OnProdutoTapped" />
+                                    </Grid.GestureRecognizers>
+
+                                    <!-- ÁREA DO PRODUTO -->
+                                    <Grid
+                                        Grid.Row="0"
+                                        ColumnDefinitions="72,*"
+                                        ColumnSpacing="14">
+
+                                        <!-- PLACEHOLDER DA IMAGEM -->
+                                        <Border
+                                            Grid.Column="0"
+                                            WidthRequest="72"
+                                            HeightRequest="72"
+                                            BackgroundColor="#EAF4FF"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 16">
+
+                                            <Label
+                                                Text="📦"
+                                                FontSize="30"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center" />
+
+                                        </Border>
+
+                                        <VerticalStackLayout
+                                            Grid.Column="1"
+                                            VerticalOptions="Center"
+                                            Spacing="5">
+
+                                            <Label
+                                                Text="{Binding Nome}"
+                                                TextColor="#0B1F3A"
+                                                FontSize="17"
+                                                FontAttributes="Bold"
+                                                LineBreakMode="TailTruncation" />
+
+                                            <Label
+                                                Text="{Binding Descricao}"
+                                                TextColor="#718096"
+                                                FontSize="13"
+                                                LineBreakMode="TailTruncation" />
+
+                                            <Label
+                                                Text="{Binding Estoque, StringFormat='✓ {0} disponíveis'}"
+                                                TextColor="#1E88E5"
+                                                FontSize="12"
+                                                FontAttributes="Bold" />
+
+                                        </VerticalStackLayout>
+
+                                    </Grid>
+
+                                    <!-- DIVISOR -->
+                                    <BoxView
+                                        Grid.Row="1"
+                                        HeightRequest="1"
+                                        BackgroundColor="#EDF1F5" />
+
+                                    <!-- PREÇO + BOTÃO -->
+                                    <Grid
+                                        Grid.Row="2"
+                                        ColumnDefinitions="*,Auto"
+                                        ColumnSpacing="12">
+
+                                        <VerticalStackLayout
+                                            Grid.Column="0"
+                                            Spacing="1">
+
+                                            <Label
+                                                Text="Preço"
+                                                TextColor="#8A94A6"
+                                                FontSize="11" />
+
+                                            <Label
+                                                Text="{Binding Preco, StringFormat='R$ {0:F2}'}"
+                                                TextColor="#0B1F3A"
+                                                FontSize="20"
+                                                FontAttributes="Bold" />
+
+                                        </VerticalStackLayout>
+
+                                        <Border
+                                            Grid.Column="1"
+                                            BackgroundColor="#1E88E5"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 12"
+                                            Padding="18,11">
+
+                                            <Label
+                                                Text="Ver detalhes"
+                                                TextColor="White"
+                                                FontSize="13"
+                                                FontAttributes="Bold" />
+
+                                        </Border>
+
+                                    </Grid>
+
+                                </Grid>
+
+                            </Border>
+
+                        </DataTemplate>
+
+                    </CollectionView.ItemTemplate>
+
+                </CollectionView>
+
+            </VerticalStackLayout>
+
+        </ScrollView>
+
+    </Grid>
 
 </ContentPage>
