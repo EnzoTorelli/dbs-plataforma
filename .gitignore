@@ -4,6 +4,7 @@ obj/
 *.apk
 *.aab
 
-appsettings.Development.json
+**/appsettings.Development.json
 appsettings.*.json
 !appsettings.json
+DBS/DBS/appsettings.Development.json
