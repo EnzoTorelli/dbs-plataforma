@@ -1,5 +1,5 @@
 using DBS.Models;
-using MySql.Data.MySqlClient;
+using Npgsql;
 
 namespace DBS.Repositories
 {
@@ -15,10 +15,10 @@ namespace DBS.Repositories
         public List<Produto> GetAll()
         {
             var produtos = new List<Produto>();
-            using var conn = new MySqlConnection(_connectionString);
+            using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
 
-            var cmd = new MySqlCommand(@"
+            var cmd = new NpgsqlCommand(@"
                 SELECT p.id, p.nome, p.descricao, p.preco, p.estoque, p.id_categoria, c.nome AS categoria_nome
                 FROM produto p
                 LEFT JOIN categoria c ON c.id = p.id_categoria
@@ -29,13 +29,13 @@ namespace DBS.Repositories
             {
                 produtos.Add(new Produto
                 {
-                    Id           = reader.GetInt32("id"),
-                    Nome         = reader.GetString("nome"),
-                    Descricao    = reader.IsDBNull(reader.GetOrdinal("descricao"))       ? null : reader.GetString("descricao"),
-                    Preco        = reader.GetDecimal("preco"),
-                    Estoque      = reader.GetInt32("estoque"),
-                    IdCategoria  = reader.IsDBNull(reader.GetOrdinal("id_categoria"))    ? null : reader.GetInt32("id_categoria"),
-                    CategoriaNome = reader.IsDBNull(reader.GetOrdinal("categoria_nome")) ? null : reader.GetString("categoria_nome")
+                    Id = reader.GetInt32(reader.GetOrdinal("id")),
+                    Nome = reader.GetString(reader.GetOrdinal("nome")),
+                    Descricao = reader.IsDBNull(reader.GetOrdinal("descricao")) ? null : reader.GetString(reader.GetOrdinal("descricao")),
+                    Preco = reader.GetDecimal(reader.GetOrdinal("preco")),
+                    Estoque = reader.GetInt32(reader.GetOrdinal("estoque")),
+                    IdCategoria = reader.IsDBNull(reader.GetOrdinal("id_categoria")) ? null : reader.GetInt32(reader.GetOrdinal("id_categoria")),
+                    CategoriaNome = reader.IsDBNull(reader.GetOrdinal("categoria_nome")) ? null : reader.GetString(reader.GetOrdinal("categoria_nome"))
                 });
             }
             return produtos;
@@ -43,40 +43,41 @@ namespace DBS.Repositories
 
         public int TotalEstoque()
         {
-            using var conn = new MySqlConnection(_connectionString);
+            using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
-            var cmd = new MySqlCommand("SELECT COALESCE(SUM(estoque), 0) FROM produto", conn);
+            var cmd = new NpgsqlCommand("SELECT COALESCE(SUM(estoque), 0) FROM produto", conn);
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
 
         public void Insert(Produto produto)
         {
-            using var conn = new MySqlConnection(_connectionString);
+            using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
-            var cmd = new MySqlCommand(
+            var cmd = new NpgsqlCommand(
                 "INSERT INTO produto (nome, descricao, preco, estoque, id_categoria) VALUES (@nome, @descricao, @preco, @estoque, @idCategoria)",
                 conn);
-            cmd.Parameters.AddWithValue("@nome",        produto.Nome);
-            cmd.Parameters.AddWithValue("@descricao",   produto.Descricao);
-            cmd.Parameters.AddWithValue("@preco",       produto.Preco);
-            cmd.Parameters.AddWithValue("@estoque",     produto.Estoque);
-            cmd.Parameters.AddWithValue("@idCategoria", produto.IdCategoria);
+            cmd.Parameters.AddWithValue("@nome", produto.Nome);
+            cmd.Parameters.AddWithValue("@descricao", (object?)produto.Descricao ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@preco", produto.Preco);
+            cmd.Parameters.AddWithValue("@estoque", produto.Estoque);
+            cmd.Parameters.AddWithValue("@idCategoria", (object?)produto.IdCategoria ?? DBNull.Value);
             cmd.ExecuteNonQuery();
         }
 
         public void Delete(int id)
         {
-            using var conn = new MySqlConnection(_connectionString);
+            using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
-            var cmd = new MySqlCommand("DELETE FROM produto WHERE id = @id", conn);
+            var cmd = new NpgsqlCommand("DELETE FROM produto WHERE id = @id", conn);
             cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
         }
+
         public Produto? GetById(int id)
         {
-            using var conn = new MySqlConnection(_connectionString);
+            using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
-            var cmd = new MySqlCommand(@"
+            var cmd = new NpgsqlCommand(@"
         SELECT p.id, p.nome, p.descricao, p.preco, p.estoque, p.id_categoria, c.nome AS categoria_nome
         FROM produto p
         LEFT JOIN categoria c ON c.id = p.id_categoria
@@ -87,13 +88,13 @@ namespace DBS.Repositories
             {
                 return new Produto
                 {
-                    Id = reader.GetInt32("id"),
-                    Nome = reader.GetString("nome"),
-                    Descricao = reader.IsDBNull(reader.GetOrdinal("descricao")) ? null : reader.GetString("descricao"),
-                    Preco = reader.GetDecimal("preco"),
-                    Estoque = reader.GetInt32("estoque"),
-                    IdCategoria = reader.IsDBNull(reader.GetOrdinal("id_categoria")) ? null : reader.GetInt32("id_categoria"),
-                    CategoriaNome = reader.IsDBNull(reader.GetOrdinal("categoria_nome")) ? null : reader.GetString("categoria_nome")
+                    Id = reader.GetInt32(reader.GetOrdinal("id")),
+                    Nome = reader.GetString(reader.GetOrdinal("nome")),
+                    Descricao = reader.IsDBNull(reader.GetOrdinal("descricao")) ? null : reader.GetString(reader.GetOrdinal("descricao")),
+                    Preco = reader.GetDecimal(reader.GetOrdinal("preco")),
+                    Estoque = reader.GetInt32(reader.GetOrdinal("estoque")),
+                    IdCategoria = reader.IsDBNull(reader.GetOrdinal("id_categoria")) ? null : reader.GetInt32(reader.GetOrdinal("id_categoria")),
+                    CategoriaNome = reader.IsDBNull(reader.GetOrdinal("categoria_nome")) ? null : reader.GetString(reader.GetOrdinal("categoria_nome"))
                 };
             }
             return null;
@@ -101,16 +102,16 @@ namespace DBS.Repositories
 
         public void Update(Produto produto)
         {
-            using var conn = new MySqlConnection(_connectionString);
+            using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
-            var cmd = new MySqlCommand(
+            var cmd = new NpgsqlCommand(
                 "UPDATE produto SET nome=@nome, descricao=@descricao, preco=@preco, estoque=@estoque, id_categoria=@idCategoria WHERE id=@id",
                 conn);
             cmd.Parameters.AddWithValue("@nome", produto.Nome);
-            cmd.Parameters.AddWithValue("@descricao", produto.Descricao);
+            cmd.Parameters.AddWithValue("@descricao", (object?)produto.Descricao ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@preco", produto.Preco);
             cmd.Parameters.AddWithValue("@estoque", produto.Estoque);
-            cmd.Parameters.AddWithValue("@idCategoria", produto.IdCategoria);
+            cmd.Parameters.AddWithValue("@idCategoria", (object?)produto.IdCategoria ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@id", produto.Id);
             cmd.ExecuteNonQuery();
         }

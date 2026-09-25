@@ -24,29 +24,29 @@ namespace DBS.Controllers
     public class VendaMensal
     {
         public int Mes { get; set; }
-        public string NomeMes { get; set; }
+        public string NomeMes { get; set; } = string.Empty;
         public decimal Receita { get; set; }
         public int QtdVendas { get; set; }
     }
 
     public class ClienteRanking
     {
-        public string Nome { get; set; }
+        public string Nome { get; set; } = string.Empty;
         public decimal TotalGasto { get; set; }
         public int QtdCompras { get; set; }
-        public string Classificacao { get; set; } // "VIP", "Ativo", "Inativo"
+        public string Classificacao { get; set; } = string.Empty; // "VIP", "Ativo", "Inativo"
     }
 
     public class ProdutoRanking
     {
-        public string Nome { get; set; }
+        public string Nome { get; set; } = string.Empty;
         public int QtdVendida { get; set; }
         public decimal ReceitaGerada { get; set; }
     }
 
     public class PrevisaoReceita
     {
-        public string Mes { get; set; }
+        public string Mes { get; set; } = string.Empty;
         public decimal ValorPrevisto { get; set; }
         public bool EPrevisao { get; set; }
     }
@@ -63,15 +63,15 @@ namespace DBS.Controllers
         public decimal VariacaoUltimoMes { get; set; }
 
         // Listas para gráficos e tabelas
-        public List<VendaMensal> VendasMensais { get; set; }
-        public List<ClienteRanking> RankingClientes { get; set; }
-        public List<ProdutoRanking> RankingProdutos { get; set; }
-        public List<PrevisaoReceita> PrevisaoProximoMes { get; set; }
+        public List<VendaMensal> VendasMensais { get; set; } = new();
+        public List<ClienteRanking> RankingClientes { get; set; } = new();
+        public List<ProdutoRanking> RankingProdutos { get; set; } = new();
+        public List<PrevisaoReceita> PrevisaoProximoMes { get; set; } = new();
 
         // Regressão linear
         public decimal PrevisaoMes7 { get; set; }
         public double CoeficienteAngular { get; set; } // "tendência de crescimento"
-        public string InterpretacaoTendencia { get; set; }
+        public string InterpretacaoTendencia { get; set; } = string.Empty;
 
         // Segmentação de clientes
         public int ClientesVip { get; set; }
@@ -124,20 +124,20 @@ namespace DBS.Controllers
             // --- KPIs básicos ---
             decimal receitaTotal = _vendasHistoricas.Sum(v => v.Receita);
             decimal mediaReceita = receitaTotal / _vendasHistoricas.Count;
-            int totalVendas     = _vendasHistoricas.Sum(v => v.QtdVendas);
+            int totalVendas = _vendasHistoricas.Sum(v => v.QtdVendas);
             decimal ticketMedio = receitaTotal / totalVendas;
 
             decimal receitaMes5 = _vendasHistoricas[4].Receita;
             decimal receitaMes6 = _vendasHistoricas[5].Receita;
-            decimal variacao    = ((receitaMes6 - receitaMes5) / receitaMes5) * 100;
+            decimal variacao = ((receitaMes6 - receitaMes5) / receitaMes5) * 100;
 
             // --- Regressão Linear Simples (OLS) ---
             // X = índice do mês (1..6), Y = receita
             // Fórmula: b = (n*ΣXY - ΣX*ΣY) / (n*ΣX² - (ΣX)²)
             //          a = (ΣY - b*ΣX) / n
             int n = _vendasHistoricas.Count;
-            double somaX  = _vendasHistoricas.Sum(v => (double)v.Mes);
-            double somaY  = _vendasHistoricas.Sum(v => (double)v.Receita);
+            double somaX = _vendasHistoricas.Sum(v => (double)v.Mes);
+            double somaY = _vendasHistoricas.Sum(v => (double)v.Receita);
             double somaXY = _vendasHistoricas.Sum(v => (double)v.Mes * (double)v.Receita);
             double somaX2 = _vendasHistoricas.Sum(v => (double)(v.Mes * v.Mes));
 
@@ -163,35 +163,35 @@ namespace DBS.Controllers
             // --- Série completa com previsão para o gráfico ---
             var serieCompleta = _vendasHistoricas.Select(v => new PrevisaoReceita
             {
-                Mes          = v.NomeMes,
+                Mes = v.NomeMes,
                 ValorPrevisto = v.Receita,
-                EPrevisao    = false
+                EPrevisao = false
             }).ToList();
 
             serieCompleta.Add(new PrevisaoReceita
             {
-                Mes           = "Abril/25 (prev.)",
+                Mes = "Abril/25 (prev.)",
                 ValorPrevisto = previsaoMes7,
-                EPrevisao     = true
+                EPrevisao = true
             });
 
             return new AnalyticsViewModel
             {
-                ReceitaTotalSemestre  = receitaTotal,
-                MediaMensalReceita    = mediaReceita,
-                TicketMedio           = ticketMedio,
-                TotalVendasSemestre   = totalVendas,
-                VariacaoUltimoMes     = variacao,
-                VendasMensais         = _vendasHistoricas,
-                RankingClientes       = _clientes.OrderByDescending(c => c.TotalGasto).ToList(),
-                RankingProdutos       = _produtos.OrderByDescending(p => p.QtdVendida).ToList(),
-                PrevisaoProximoMes    = serieCompleta,
-                PrevisaoMes7          = previsaoMes7,
-                CoeficienteAngular    = b,
+                ReceitaTotalSemestre = receitaTotal,
+                MediaMensalReceita = mediaReceita,
+                TicketMedio = ticketMedio,
+                TotalVendasSemestre = totalVendas,
+                VariacaoUltimoMes = variacao,
+                VendasMensais = _vendasHistoricas,
+                RankingClientes = _clientes.OrderByDescending(c => c.TotalGasto).ToList(),
+                RankingProdutos = _produtos.OrderByDescending(p => p.QtdVendida).ToList(),
+                PrevisaoProximoMes = serieCompleta,
+                PrevisaoMes7 = previsaoMes7,
+                CoeficienteAngular = b,
                 InterpretacaoTendencia = interpretacao,
-                ClientesVip           = _clientes.Count(c => c.Classificacao == "VIP"),
-                ClientesAtivos        = _clientes.Count(c => c.Classificacao == "Ativo"),
-                ClientesInativos      = _clientes.Count(c => c.Classificacao == "Inativo"),
+                ClientesVip = _clientes.Count(c => c.Classificacao == "VIP"),
+                ClientesAtivos = _clientes.Count(c => c.Classificacao == "Ativo"),
+                ClientesInativos = _clientes.Count(c => c.Classificacao == "Inativo"),
             };
         }
     }

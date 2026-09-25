@@ -17,7 +17,7 @@ namespace DbsErpMobile
                 });
 
 #if DEBUG
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
             builder.Services.AddSingleton<CarrinhoService>();
             builder.Services.AddTransient<Views.ProdutoDetailPage>();

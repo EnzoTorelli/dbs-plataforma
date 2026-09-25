@@ -1,5 +1,5 @@
 using DBS.Models;
-using MySql.Data.MySqlClient;
+using Npgsql;
 
 namespace DBS.Repositories
 {
@@ -15,10 +15,10 @@ namespace DBS.Repositories
         public List<Cliente> GetAll()
         {
             var clientes = new List<Cliente>();
-            using var conn = new MySqlConnection(_connectionString);
+            using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
 
-            var cmd = new MySqlCommand(
+            var cmd = new NpgsqlCommand(
                 "SELECT id, nome, cpf, email, telefone, data_cadastro FROM cliente ORDER BY nome",
                 conn);
 
@@ -27,12 +27,12 @@ namespace DBS.Repositories
             {
                 clientes.Add(new Cliente
                 {
-                    Id           = reader.GetInt32("id"),
-                    Nome         = reader.GetString("nome"),
-                    Cpf          = reader.IsDBNull(reader.GetOrdinal("cpf"))      ? null : reader.GetString("cpf"),
-                    Email        = reader.IsDBNull(reader.GetOrdinal("email"))     ? null : reader.GetString("email"),
-                    Telefone     = reader.IsDBNull(reader.GetOrdinal("telefone"))  ? null : reader.GetString("telefone"),
-                    DataCadastro = reader.GetDateTime("data_cadastro")
+                    Id = reader.GetInt32(reader.GetOrdinal("id")),
+                    Nome = reader.GetString(reader.GetOrdinal("nome")),
+                    Cpf = reader.IsDBNull(reader.GetOrdinal("cpf")) ? null : reader.GetString(reader.GetOrdinal("cpf")),
+                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? null : reader.GetString(reader.GetOrdinal("email")),
+                    Telefone = reader.IsDBNull(reader.GetOrdinal("telefone")) ? null : reader.GetString(reader.GetOrdinal("telefone")),
+                    DataCadastro = reader.GetDateTime(reader.GetOrdinal("data_cadastro"))
                 });
             }
             return clientes;
@@ -40,54 +40,51 @@ namespace DBS.Repositories
 
         public int Count()
         {
-            using var conn = new MySqlConnection(_connectionString);
+            using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
-            var cmd = new MySqlCommand("SELECT COUNT(*) FROM cliente", conn);
+            var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM cliente", conn);
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
 
         public void Insert(Cliente cliente)
         {
-            using var conn = new MySqlConnection(_connectionString);
+            using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
-            var cmd = new MySqlCommand(
+            var cmd = new NpgsqlCommand(
                 "INSERT INTO cliente (nome, cpf, email, telefone) VALUES (@nome, @cpf, @email, @telefone)",
                 conn);
-            cmd.Parameters.AddWithValue("@nome",     cliente.Nome);
-            cmd.Parameters.AddWithValue("@cpf",      cliente.Cpf);
-            cmd.Parameters.AddWithValue("@email",    cliente.Email);
-            cmd.Parameters.AddWithValue("@telefone", cliente.Telefone);
+            cmd.Parameters.AddWithValue("@nome", (object?)cliente.Nome ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cpf", (object?)cliente.Cpf ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@email", (object?)cliente.Email ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@telefone", (object?)cliente.Telefone ?? DBNull.Value);
             cmd.ExecuteNonQuery();
         }
 
         public void Delete(int id)
         {
-            using var conn = new MySqlConnection(_connectionString);
+            using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
 
-            // Remove itens dos pedidos do cliente primeiro
-            var cmdItens = new MySqlCommand(@"
-        DELETE ip FROM item_pedido ip
-        INNER JOIN pedido p ON p.id = ip.id_pedido
-        WHERE p.id_cliente = @id", conn);
+            var cmdItens = new NpgsqlCommand(@"
+                DELETE FROM item_pedido
+                WHERE id_pedido IN (SELECT id FROM pedido WHERE id_cliente = @id)", conn);
             cmdItens.Parameters.AddWithValue("@id", id);
             cmdItens.ExecuteNonQuery();
 
-            // Remove os pedidos do cliente
-            var cmdPedidos = new MySqlCommand("DELETE FROM pedido WHERE id_cliente = @id", conn);
+            var cmdPedidos = new NpgsqlCommand("DELETE FROM pedido WHERE id_cliente = @id", conn);
             cmdPedidos.Parameters.AddWithValue("@id", id);
             cmdPedidos.ExecuteNonQuery();
 
-            // Remove o cliente
-            var cmd = new MySqlCommand("DELETE FROM cliente WHERE id = @id", conn);
+            var cmd = new NpgsqlCommand("DELETE FROM cliente WHERE id = @id", conn);
             cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
         }
+
         public Cliente? GetById(int id)
         {
-            using var conn = new MySqlConnection(_connectionString);
+            using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
-            var cmd = new MySqlCommand(
+            var cmd = new NpgsqlCommand(
                 "SELECT id, nome, cpf, email, telefone, data_cadastro FROM cliente WHERE id = @id", conn);
             cmd.Parameters.AddWithValue("@id", id);
             using var reader = cmd.ExecuteReader();
@@ -95,12 +92,12 @@ namespace DBS.Repositories
             {
                 return new Cliente
                 {
-                    Id = reader.GetInt32("id"),
-                    Nome = reader.GetString("nome"),
-                    Cpf = reader.IsDBNull(reader.GetOrdinal("cpf")) ? null : reader.GetString("cpf"),
-                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? null : reader.GetString("email"),
-                    Telefone = reader.IsDBNull(reader.GetOrdinal("telefone")) ? null : reader.GetString("telefone"),
-                    DataCadastro = reader.GetDateTime("data_cadastro")
+                    Id = reader.GetInt32(reader.GetOrdinal("id")),
+                    Nome = reader.GetString(reader.GetOrdinal("nome")),
+                    Cpf = reader.IsDBNull(reader.GetOrdinal("cpf")) ? null : reader.GetString(reader.GetOrdinal("cpf")),
+                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? null : reader.GetString(reader.GetOrdinal("email")),
+                    Telefone = reader.IsDBNull(reader.GetOrdinal("telefone")) ? null : reader.GetString(reader.GetOrdinal("telefone")),
+                    DataCadastro = reader.GetDateTime(reader.GetOrdinal("data_cadastro"))
                 };
             }
             return null;
@@ -108,15 +105,15 @@ namespace DBS.Repositories
 
         public void Update(Cliente cliente)
         {
-            using var conn = new MySqlConnection(_connectionString);
+            using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
-            var cmd = new MySqlCommand(
+            var cmd = new NpgsqlCommand(
                 "UPDATE cliente SET nome=@nome, cpf=@cpf, email=@email, telefone=@telefone WHERE id=@id",
                 conn);
-            cmd.Parameters.AddWithValue("@nome", cliente.Nome);
-            cmd.Parameters.AddWithValue("@cpf", cliente.Cpf);
-            cmd.Parameters.AddWithValue("@email", cliente.Email);
-            cmd.Parameters.AddWithValue("@telefone", cliente.Telefone);
+            cmd.Parameters.AddWithValue("@nome", (object?)cliente.Nome ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cpf", (object?)cliente.Cpf ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@email", (object?)cliente.Email ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@telefone", (object?)cliente.Telefone ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@id", cliente.Id);
             cmd.ExecuteNonQuery();
         }

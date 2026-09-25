@@ -32,11 +32,15 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseCors("PermitirMobile"); // precisa vir depois de UseRouting e antes de UseAuthorization
+
 app.UseSession(); // deve vir antes do UseAuthorization
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Login}/{action=Index}/{id?}");
+
+app.MapControllers(); // necessário para os Controllers com [ApiController] (rotas api/...) funcionarem
 
 app.Run();
