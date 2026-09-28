@@ -19,7 +19,7 @@ namespace DBS.Repositories
             conn.Open();
 
             var cmd = new NpgsqlCommand(
-                "SELECT id, nome, cpf, email, telefone, data_cadastro FROM cliente ORDER BY nome",
+                "SELECT id, nome, cpf, email, telefone, data_cadastro FROM cliente ORDER BY id ASC",
                 conn);
 
             using var reader = cmd.ExecuteReader();

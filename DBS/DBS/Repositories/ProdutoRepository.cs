@@ -22,7 +22,7 @@ namespace DBS.Repositories
                 SELECT p.id, p.nome, p.descricao, p.preco, p.estoque, p.id_categoria, c.nome AS categoria_nome
                 FROM produto p
                 LEFT JOIN categoria c ON c.id = p.id_categoria
-                ORDER BY p.nome", conn);
+                ORDER BY id ASC", conn);
 
             using var reader = cmd.ExecuteReader();
             while (reader.Read())

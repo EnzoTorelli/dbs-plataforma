@@ -7,6 +7,48 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/clientes.css" />
+    <style>
+        .form-grupo input.invalido {
+            border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, .12);
+        }
+
+        .erro-campo {
+            display: block;
+            min-height: 16px;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #dc2626;
+        }
+
+        .obrigatorio {
+            color: #dc2626;
+        }
+
+        .alerta {
+            margin: 0 0 16px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+            .alerta ul {
+                margin: 6px 0 0 18px;
+                padding: 0;
+            }
+
+        .alerta-erro {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .alerta-sucesso {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+    </style>
 }
 
 <div class="page-wrap">
@@ -16,177 +58,356 @@
             <br>
             <h1>Clientes</h1>
             <span>Gerencie os clientes cadastrados</span>
-        </div>
-        <button class="btn-novo" onclick="abrirModal()">+ Novo Cliente</button>
-    </div>
-
-    <div class="barra-busca">
-        <input type="text" id="campoBusca" placeholder="Buscar por nome, e-mail ou CPF..." oninput="filtrarTabela()" />
-    </div>
-
-    <div class="painel">
-        <table class="tabela" id="tabelaClientes">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Nome</th>
-                    <th>E-mail</th>
-                    <th>Telefone</th>
-                    <th>CPF</th>
-                    <th>Cadastro</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (!Model.Any())
-                {
-                    <tr>
-                        <td colspan="7" style="text-align:center; color:#888;">Nenhum cliente cadastrado.</td>
-                    </tr>
-                }
-                @foreach (var cliente in Model)
-                {
-                    <tr>
-                        <td>@cliente.Id</td>
-                        <td>@cliente.Nome</td>
-                        <td>@(cliente.Email ?? "—")</td>
-                        <td>@(cliente.Telefone ?? "—")</td>
-                        <td>@(cliente.Cpf ?? "—")</td>
-                        <td>@cliente.DataCadastro.ToString("dd/MM/yyyy")</td>
-                        <td>
-                            <button class="btn-acao editar" onclick="abrirModalEditar(@cliente.Id)">Editar</button>
-                            <form method="post" asp-action="Excluir" asp-route-id="@cliente.Id" style="display:inline"
-                                  onsubmit="return confirm('Excluir cliente @cliente.Nome?')">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn-acao excluir">Excluir</button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-
-</div>
-
-<!-- Modal de Cadastro -->
-<div class="modal-overlay" id="modalCliente">
-    <div class="modal">
-        <div class="modal-header">
-            <h2>Novo Cliente</h2>
-            <button type="button" class="modal-fechar" onclick="fecharModal()">×</button>
+            <p>
+            </div>
+            <button class="btn-novo" onclick="abrirModal()">+ Novo Cliente</button>
         </div>
 
-        <form method="post" asp-action="Salvar">
-            @Html.AntiForgeryToken()
-
-            <div class="form-grupo">
-                <label>Nome completo</label>
-                <input type="text" name="Nome" placeholder="Ex: Maria Silva" />
+        @if (TempData["Erro"] is string erro)
+        {
+            <div class="alerta alerta-erro">
+                <strong>Não foi possível salvar:</strong>
+                <ul>
+                    @foreach (var msg in erro.Split('|'))
+                    {
+                        <li>@msg</li>
+                    }
+                </ul>
             </div>
-
-            <div class="form-linha">
-                <div class="form-grupo">
-                    <label>CPF</label>
-                    <input type="text" name="Cpf" placeholder="000.000.000-00" />
-                </div>
-                <div class="form-grupo">
-                    <label>Telefone</label>
-                    <input type="text" name="Telefone" placeholder="(00) 00000-0000" />
-                </div>
-            </div>
-
-            <div class="form-grupo">
-                <label>E-mail</label>
-                <input type="email" name="Email" placeholder="email@exemplo.com" />
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
-                <button type="submit" class="btn-salvar">Salvar Cliente</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Modal de Edição -->
-<div class="modal-overlay" id="modalEditar">
-    <div class="modal">
-        <div class="modal-header">
-            <h2>Editar Cliente</h2>
-            <button type="button" class="modal-fechar" onclick="fecharModalEditar()">×</button>
-        </div>
-
-        <form method="post" asp-action="Atualizar">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="Id" id="editarId" />
-
-            <div class="form-grupo">
-                <label>Nome completo</label>
-                <input type="text" name="Nome" id="editarNome" />
-            </div>
-
-            <div class="form-linha">
-                <div class="form-grupo">
-                    <label>CPF</label>
-                    <input type="text" name="Cpf" id="editarCpf" />
-                </div>
-                <div class="form-grupo">
-                    <label>Telefone</label>
-                    <input type="text" name="Telefone" id="editarTelefone" />
-                </div>
-            </div>
-
-            <div class="form-grupo">
-                <label>E-mail</label>
-                <input type="email" name="Email" id="editarEmail" />
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn-cancelar" onclick="fecharModalEditar()">Cancelar</button>
-                <button type="submit" class="btn-salvar">Salvar Alterações</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-@section Scripts {
-    <script>
-        function abrirModal() {
-            document.getElementById('modalCliente').classList.add('aberto');
         }
-        function fecharModal() {
-            document.getElementById('modalCliente').classList.remove('aberto');
+        @if (TempData["Sucesso"] is string sucesso)
+        {
+            <div class="alerta alerta-sucesso">@sucesso</div>
         }
-        document.getElementById('modalCliente').addEventListener('click', function (e) {
-            if (e.target === this) fecharModal();
-        });
 
-        function abrirModalEditar(id) {
-            fetch(`/Clientes/Editar/${id}`)
-                .then(r => r.json())
-                .then(c => {
-                    document.getElementById('editarId').value       = c.id;
-                    document.getElementById('editarNome').value     = c.nome;
-                    document.getElementById('editarCpf').value      = c.cpf ?? '';
-                    document.getElementById('editarTelefone').value = c.telefone ?? '';
-                    document.getElementById('editarEmail').value    = c.email ?? '';
-                    document.getElementById('modalEditar').classList.add('aberto');
+        <div class="barra-busca">
+            <input type="text" id="campoBusca" placeholder="Buscar por nome, e-mail ou CPF..." oninput="filtrarTabela()" />
+        </div>
+
+        <div class="painel">
+            <table class="tabela" id="tabelaClientes">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>Telefone</th>
+                        <th>CPF</th>
+                        <th>Cadastro</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" style="text-align:center; color:#888;">Nenhum cliente cadastrado.</td>
+                        </tr>
+                    }
+                    @foreach (var cliente in Model)
+                    {
+                        <tr>
+                            <td>@cliente.Id</td>
+                            <td>@cliente.Nome</td>
+                            <td>@(cliente.Email ?? "—")</td>
+                            <td>@(cliente.Telefone ?? "—")</td>
+                            <td>@(cliente.Cpf ?? "—")</td>
+                            <td>@cliente.DataCadastro.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <button class="btn-acao editar" onclick="abrirModalEditar(@cliente.Id)">Editar</button>
+                                <form method="post" asp-action="Excluir" asp-route-id="@cliente.Id" style="display:inline"
+                                      onsubmit="return confirm('Excluir cliente @cliente.Nome?')">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn-acao excluir">Excluir</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- Modal de Cadastro -->
+    <div class="modal-overlay" id="modalCliente">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Novo Cliente</h2>
+                <button type="button" class="modal-fechar" onclick="fecharModal()">×</button>
+            </div>
+
+            <form method="post" asp-action="Salvar" id="formNovo" data-cliente novalidate>
+                @Html.AntiForgeryToken()
+
+                <div class="form-grupo">
+                    <label>Nome completo <span class="obrigatorio">*</span></label>
+                    <input type="text" name="Nome" placeholder="Ex: Maria Silva" maxlength="150" data-validar />
+                    <span class="erro-campo"></span>
+                </div>
+
+                <div class="form-linha">
+                    <div class="form-grupo">
+                        <label>CPF <span class="obrigatorio">*</span></label>
+                        <input type="text" name="Cpf" placeholder="000.000.000-00" inputmode="numeric"
+                               autocomplete="off" maxlength="14" data-mask="cpf" data-validar />
+                        <span class="erro-campo"></span>
+                    </div>
+                    <div class="form-grupo">
+                        <label>Telefone <span class="obrigatorio">*</span></label>
+                        <input type="text" name="Telefone" placeholder="(00) 00000-0000" inputmode="numeric"
+                               autocomplete="off" maxlength="15" data-mask="telefone" data-validar />
+                        <span class="erro-campo"></span>
+                    </div>
+                </div>
+
+                <div class="form-grupo">
+                    <label>E-mail <span class="obrigatorio">*</span></label>
+                    <input type="email" name="Email" placeholder="email@exemplo.com" maxlength="150" data-validar />
+                    <span class="erro-campo"></span>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+                    <button type="submit" class="btn-salvar">Salvar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Edição -->
+    <div class="modal-overlay" id="modalEditar">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Editar Cliente</h2>
+                <button type="button" class="modal-fechar" onclick="fecharModalEditar()">×</button>
+            </div>
+
+            <form method="post" asp-action="Atualizar" id="formEditar" data-cliente novalidate>
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" id="editarId" />
+
+                <div class="form-grupo">
+                    <label>Nome completo <span class="obrigatorio">*</span></label>
+                    <input type="text" name="Nome" id="editarNome" maxlength="150" data-validar />
+                    <span class="erro-campo"></span>
+                </div>
+
+                <div class="form-linha">
+                    <div class="form-grupo">
+                        <label>CPF <span class="obrigatorio">*</span></label>
+                        <input type="text" name="Cpf" id="editarCpf" placeholder="000.000.000-00" inputmode="numeric"
+                               autocomplete="off" maxlength="14" data-mask="cpf" data-validar />
+                        <span class="erro-campo"></span>
+                    </div>
+                    <div class="form-grupo">
+                        <label>Telefone <span class="obrigatorio">*</span></label>
+                        <input type="text" name="Telefone" id="editarTelefone" placeholder="(00) 00000-0000" inputmode="numeric"
+                               autocomplete="off" maxlength="15" data-mask="telefone" data-validar />
+                        <span class="erro-campo"></span>
+                    </div>
+                </div>
+
+                <div class="form-grupo">
+                    <label>E-mail <span class="obrigatorio">*</span></label>
+                    <input type="email" name="Email" id="editarEmail" placeholder="email@exemplo.com" maxlength="150" data-validar />
+                    <span class="erro-campo"></span>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancelar" onclick="fecharModalEditar()">Cancelar</button>
+                    <button type="submit" class="btn-salvar">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script>
+            // ================= Máscaras (mesmo padrão do MaskedTextBox) =================
+            const MASCARAS = {
+                cpf: '000.000.000-00',
+                telefone: '(00) 00000-0000'
+            };
+
+            const soDigitos = s => (s || '').replace(/\D/g, '');
+
+            // '0' na máscara = dígito obrigatório; qualquer outro caractere = literal
+            function aplicarMascara(valor, mascara) {
+                const d = soDigitos(valor);
+                let saida = '', i = 0;
+                for (const ch of mascara) {
+                    if (i >= d.length) break;
+                    saida += ch === '0' ? d[i++] : ch;
+                }
+                return saida;
+            }
+
+            // Reaplica a máscara a cada tecla, mantendo o cursor no lugar certo
+            function aoDigitarMascara(e) {
+                const inp = e.target;
+                const pos = inp.selectionStart ?? inp.value.length;
+                const digitosAntes = soDigitos(inp.value.slice(0, pos)).length;
+
+                const novo = aplicarMascara(inp.value, MASCARAS[inp.dataset.mask]);
+                inp.value = novo;
+
+                let p = 0, cont = 0;
+                while (p < novo.length && cont < digitosAntes) {
+                    if (/\d/.test(novo[p])) cont++;
+                    p++;
+                }
+                inp.setSelectionRange(p, p);
+            }
+
+            document.querySelectorAll('[data-mask]').forEach(inp =>
+                inp.addEventListener('input', aoDigitarMascara));
+
+            // ================= Validação (mesmas regras do servidor) =================
+            const DDDS = new Set([
+                11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 24, 27, 28,
+                31, 32, 33, 34, 35, 37, 38, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+                51, 53, 54, 55, 61, 62, 63, 64, 65, 66, 67, 68, 69,
+                71, 73, 74, 75, 77, 79, 81, 82, 83, 84, 85, 86, 87, 88, 89,
+                91, 92, 93, 94, 95, 96, 97, 98, 99
+            ]);
+
+            function cpfValido(v) {
+                const d = soDigitos(v);
+                if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
+                const digito = qtd => {
+                    let soma = 0;
+                    for (let i = 0; i < qtd; i++) soma += Number(d[i]) * (qtd + 1 - i);
+                    const resto = soma % 11;
+                    return resto < 2 ? 0 : 11 - resto;
+                };
+                return digito(9) === Number(d[9]) && digito(10) === Number(d[10]);
+            }
+
+            function telefoneValido(v) {
+                const d = soDigitos(v);
+                return d.length === 11 && DDDS.has(Number(d.slice(0, 2))) && d[2] === '9';
+            }
+
+            const RX_EMAIL = /^[A-Za-z0-9._%+\-]+@@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)*\.[A-Za-z]{2,}$/;
+            function emailValido(v) {
+                v = v.trim();
+                return v.length <= 254 && !v.includes('..') && RX_EMAIL.test(v);
+            }
+
+            function nomeValido(v) {
+                v = v.trim();
+                return v.length >= 3 && /\p{L}/u.test(v);
+            }
+
+            const REGRAS = {
+                Nome:     { valido: nomeValido,     vazio: 'Informe o nome.',     invalido: 'Nome deve ter pelo menos 3 caracteres.' },
+                Cpf:      { valido: cpfValido,      vazio: 'Informe o CPF.',      invalido: 'CPF inválido.' },
+                Telefone: { valido: telefoneValido, vazio: 'Informe o telefone.', invalido: 'Informe DDD + celular: (00) 90000-0000.' },
+                Email:    { valido: emailValido,    vazio: 'Informe o e-mail.',   invalido: 'E-mail inválido.' }
+            };
+
+            function mostrarErro(inp, msg) {
+                inp.classList.toggle('invalido', !!msg);
+                const span = inp.parentElement.querySelector('.erro-campo');
+                if (span) span.textContent = msg;
+            }
+
+            function validarCampo(inp) {
+                const regra = REGRAS[inp.name];
+                const v = inp.value;
+                const msg = !v.trim() ? regra.vazio : (regra.valido(v) ? '' : regra.invalido);
+                mostrarErro(inp, msg);
+                return !msg;
+            }
+
+            function validarForm(form) {
+                let primeiroInvalido = null;
+                form.querySelectorAll('input[data-validar]').forEach(inp => {
+                    if (!validarCampo(inp) && !primeiroInvalido) primeiroInvalido = inp;
                 });
-        }
-        function fecharModalEditar() {
-            document.getElementById('modalEditar').classList.remove('aberto');
-        }
-        document.getElementById('modalEditar').addEventListener('click', function (e) {
-            if (e.target === this) fecharModalEditar();
-        });
+                if (primeiroInvalido) primeiroInvalido.focus();
+                return !primeiroInvalido;
+            }
 
-        function filtrarTabela() {
-            const termo = document.getElementById('campoBusca').value.toLowerCase();
-            const linhas = document.querySelectorAll('#tabelaClientes tbody tr');
-            linhas.forEach(linha => {
-                linha.style.display = linha.textContent.toLowerCase().includes(termo) ? '' : 'none';
+            function limparErros(form) {
+                form.querySelectorAll('input[data-validar]').forEach(inp => mostrarErro(inp, ''));
+            }
+
+            document.querySelectorAll('form[data-cliente]').forEach(form => {
+                form.addEventListener('submit', e => {
+                    const email = form.querySelector('[name="Email"]');
+                    email.value = email.value.trim().toLowerCase();
+                    if (!validarForm(form)) e.preventDefault();
+                });
+
+                form.querySelectorAll('input[data-validar]').forEach(inp => {
+                    // Valida ao sair do campo (se tiver algo digitado)
+                    inp.addEventListener('blur', () => { if (inp.value.trim()) validarCampo(inp); });
+                    // Se já está marcado como inválido, some o erro assim que corrigir
+                    inp.addEventListener('input', () => { if (inp.classList.contains('invalido')) validarCampo(inp); });
+                });
             });
-        }
-    </script>
-}
+
+            // ================= Modais =================
+            const formNovo = document.getElementById('formNovo');
+            const formEditar = document.getElementById('formEditar');
+
+            function abrirModal() {
+                formNovo.reset();
+                limparErros(formNovo);
+                document.getElementById('modalCliente').classList.add('aberto');
+                formNovo.querySelector('[name="Nome"]').focus();
+            }
+            function fecharModal() {
+                document.getElementById('modalCliente').classList.remove('aberto');
+            }
+            document.getElementById('modalCliente').addEventListener('click', function (e) {
+                if (e.target === this) fecharModal();
+            });
+
+            function abrirModalEditar(id) {
+                fetch(`/Clientes/Editar/${id}`)
+                    .then(r => r.json())
+                    .then(c => {
+                        limparErros(formEditar);
+                        document.getElementById('editarId').value       = c.id;
+                        document.getElementById('editarNome').value     = c.nome ?? '';
+                        document.getElementById('editarCpf').value      = aplicarMascara(c.cpf ?? '', MASCARAS.cpf);
+                        document.getElementById('editarTelefone').value = aplicarMascara(c.telefone ?? '', MASCARAS.telefone);
+                        document.getElementById('editarEmail').value    = c.email ?? '';
+                        document.getElementById('modalEditar').classList.add('aberto');
+                    });
+            }
+            function fecharModalEditar() {
+                document.getElementById('modalEditar').classList.remove('aberto');
+            }
+            document.getElementById('modalEditar').addEventListener('click', function (e) {
+                if (e.target === this) fecharModalEditar();
+            });
+
+            // Esc fecha o modal aberto
+            document.addEventListener('keydown', e => {
+                if (e.key !== 'Escape') return;
+                fecharModal();
+                fecharModalEditar();
+            });
+
+            // ================= Busca =================
+            // Encontra CPF/telefone digitado com ou sem máscara
+            function filtrarTabela() {
+                const termo = document.getElementById('campoBusca').value.toLowerCase().trim();
+                const termoDigitos = soDigitos(termo);
+                const linhas = document.querySelectorAll('#tabelaClientes tbody tr');
+
+                linhas.forEach(linha => {
+                    const texto = linha.textContent.toLowerCase();
+                    const tel = soDigitos(linha.cells[3]?.textContent);
+                    const cpf = soDigitos(linha.cells[4]?.textContent);
+                    const achou = texto.includes(termo)
+                        || (termoDigitos && (cpf.includes(termoDigitos) || tel.includes(termoDigitos)));
+                    linha.style.display = achou ? '' : 'none';
+                });
+            }
+        </script>
+    }

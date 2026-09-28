@@ -1,73 +1,285 @@
 @model DBS.ViewModels.DashboardViewModel
+@using System.Globalization
+@using System.Text.Json
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var ptBR = new CultureInfo("pt-BR");
+    var mesAnterior = ptBR.DateTimeFormat.GetMonthName(DateTime.Today.AddMonths(-1).Month);
+
+    var sparkJson = JsonSerializer.Serialize(Model.ReceitaDiariaMes, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+}
+
+@functions {
+    static string ClasseStatus(string? status) => (status ?? "").Trim().ToLowerInvariant() switch
+    {
+        "pago"      => "pago",
+        "cancelado" => "cancelado",
+        _           => "pendente"
+    };
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/dashboard.css" />
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
 }
 
-<div class="dashboard-header">
-    <h1>Dashboard</h1>
-    <p>Visão geral do sistema</p>
-</div>
+<div class="dash">
 
-<div class="cards-grid">
-    <div class="metric-card">
-        <span class="metric-label">Receita do Mês</span>
-        <span class="metric-value">R$ @Model.ReceitaMes.ToString("N2")</span>
-        <span class="metric-delta positivo">↑ Pedidos pagos no mês atual</span>
+    <div class="dashboard-header">
+        <div>
+            <h1>Dashboard</h1>
+            <p>Visão geral do sistema</p>
+        </div>
+        <div class="dash-atualizado">
+            <span>Atualizado às @Model.AtualizadoEm.ToString("HH:mm")</span>
+            <button type="button" class="btn-atualizar" onclick="location.reload()" aria-label="Atualizar dados">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                    <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9" /><path d="M13.5 2.5v3h-3" />
+                </svg>
+                Atualizar
+            </button>
+        </div>
     </div>
-    <div class="metric-card">
-        <span class="metric-label">Clientes Ativos</span>
-        <span class="metric-value">@Model.TotalClientesAtivos</span>
-        <span class="metric-delta positivo">↑ Total cadastrado</span>
-    </div>
-    <div class="metric-card">
-        <span class="metric-label">Ordens Abertas</span>
-        <span class="metric-value">@Model.TotalOrdensAbertas</span>
-        <span class="metric-delta negativo">↓ Pendentes de ação</span>
-    </div>
-    <div class="metric-card">
-        <span class="metric-label">Produtos em Estoque</span>
-        <span class="metric-value">@Model.TotalProdutosEstoque</span>
-        <span class="metric-delta positivo">↑ Unidades disponíveis</span>
-    </div>
-</div>
 
-<div class="dashboard-row">
-    <div class="painel">
-        <h3 class="painel-titulo">Últimas Ordens</h3>
-        <table class="tabela">
-            <thead>
-                <tr>
-                    <th>Pedido</th>
-                    <th>Cliente</th>
-                    <th>Valor</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (!Model.UltimasOrdens.Any())
-                {
-                    <tr>
-                        <td colspan="4" style="text-align:center; color:#888;">Nenhuma ordem encontrada.</td>
-                    </tr>
-                }
-                @foreach (var ordem in Model.UltimasOrdens)
-                {
-                    <tr>
-                        <td class="mono">#@ordem.Id</td>
-                        <td>@ordem.ClienteNome</td>
-                        <td>R$ @ordem.ValorTotal.ToString("N2")</td>
-                        <td>
-                            <span class="status @(ordem.Status?.ToLower() == "pago" ? "pago" : "pendente")">
-                                @ordem.Status
+    <!-- ================= CARDS ================= -->
+    <div class="cards-grid">
+
+        <div class="metric-card">
+            <span class="metric-label">Receita do mês</span>
+            <span class="metric-value">R$ @Model.ReceitaMes.ToString("N2", ptBR)</span>
+            @if (Model.VariacaoReceitaPct is decimal pct)
+            {
+                <span class="metric-delta @(pct >= 0 ? "positivo" : "negativo")">
+                    @(pct >= 0 ? "↑" : "↓") @Math.Abs(pct).ToString("N1", ptBR)% vs mesmo período de @mesAnterior
+                </span>
+            }
+            else
+            {
+                <span class="metric-delta neutro">Pedidos pagos no mês atual</span>
+            }
+            <div class="sparkline" id="sparkline-receita" aria-hidden="true"></div>
+        </div>
+
+        <div class="metric-card">
+            <span class="metric-label">Ticket médio</span>
+            <span class="metric-value">R$ @Model.TicketMedio.ToString("N2", ptBR)</span>
+            <span class="metric-delta neutro">
+                @Model.PedidosPagosMes @(Model.PedidosPagosMes == 1 ? "pedido pago" : "pedidos pagos") no mês
+            </span>
+        </div>
+
+        <div class="metric-card">
+            <span class="metric-label">Clientes</span>
+            <span class="metric-value">@Model.TotalClientes.ToString("N0", ptBR)</span>
+            @if (Model.ClientesNovosMes > 0)
+            {
+                <span class="metric-delta positivo">↑ @Model.ClientesNovosMes @(Model.ClientesNovosMes == 1 ? "novo" : "novos") este mês</span>
+            }
+            else
+            {
+                <span class="metric-delta neutro">Nenhum cadastro novo este mês</span>
+            }
+        </div>
+
+        <a class="metric-card metric-link" href="/Ordens">
+            <span class="metric-label">Ordens pendentes</span>
+            <span class="metric-value">@Model.TotalOrdensAbertas</span>
+            @if (Model.TotalOrdensAbertas > 0)
+            {
+                <span class="metric-delta alerta">
+                    <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="8" cy="8" r="6" /><path d="M8 5v3.5l2 1.5" /></svg>
+                    Aguardando pagamento
+                </span>
+            }
+            else
+            {
+                <span class="metric-delta positivo">
+                    <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 8.5l3 3 7-7" /></svg>
+                    Nenhuma pendência
+                </span>
+            }
+        </a>
+
+        <a class="metric-card metric-link" href="/Produtos">
+            <span class="metric-label">Unidades em estoque</span>
+            <span class="metric-value">@Model.TotalUnidadesEstoque.ToString("N0", ptBR)</span>
+            @if (Model.ProdutosEstoqueBaixo > 0)
+            {
+                <span class="metric-delta alerta">
+                    <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 2l6.5 11.5h-13z" /><path d="M8 6.5v3M8 11.5v.5" /></svg>
+                    @Model.ProdutosEstoqueBaixo de @Model.TotalProdutos produtos com estoque baixo
+                </span>
+            }
+            else
+            {
+                <span class="metric-delta neutro">Em @Model.TotalProdutos produtos</span>
+            }
+        </a>
+
+    </div>
+
+    <!-- ================= RECEITA + STATUS ================= -->
+    <div class="dash-linha dash-2-1">
+
+        <section class="painel" aria-labelledby="titulo-receita">
+            <div class="painel-topo">
+                <div>
+                    <h3 class="painel-titulo" id="titulo-receita">Receita por dia</h3>
+                    <p class="painel-resumo" id="resumo-receita">&nbsp;</p>
+                </div>
+                <div class="periodos" role="radiogroup" aria-label="Período">
+                    <button type="button" class="periodo-btn" data-periodo="7"   role="radio" aria-checked="false">7 dias</button>
+                    <button type="button" class="periodo-btn" data-periodo="30"  role="radio" aria-checked="false">30 dias</button>
+                    <button type="button" class="periodo-btn" data-periodo="90"  role="radio" aria-checked="false">90 dias</button>
+                    <button type="button" class="periodo-btn" data-periodo="mes" role="radio" aria-checked="false">Mês atual</button>
+                </div>
+            </div>
+
+            <div class="grafico-area">
+                <div class="grafico" id="grafico-receita" tabindex="0"
+                     aria-describedby="dica-receita"></div>
+                <div class="viz-tooltip" role="status" aria-live="polite"></div>
+            </div>
+            <p class="dica-teclado" id="dica-receita">Passe o mouse ou use as setas ← → para ver cada dia.</p>
+
+            <details class="ver-tabela">
+                <summary>Ver dados em tabela</summary>
+                <table class="tabela tabela-compacta">
+                    <thead><tr><th>Dia</th><th class="num">Receita</th><th class="num">Pedidos pagos</th></tr></thead>
+                    <tbody id="tabela-receita"></tbody>
+                </table>
+            </details>
+        </section>
+
+        <section class="painel" aria-labelledby="titulo-status">
+            <h3 class="painel-titulo" id="titulo-status">Pedidos por status</h3>
+            <p class="painel-resumo" id="resumo-status">&nbsp;</p>
+            <div class="grafico-area">
+                <div id="grafico-status"></div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ================= MAIS VENDIDOS + ESTOQUE BAIXO ================= -->
+    <div class="dash-linha dash-1-1">
+
+        <section class="painel" aria-labelledby="titulo-top">
+            <h3 class="painel-titulo" id="titulo-top">Mais vendidos</h3>
+            <p class="painel-resumo" id="resumo-top">&nbsp;</p>
+            <div class="grafico-area">
+                <div id="grafico-top"></div>
+                <div class="viz-tooltip" role="status" aria-live="polite"></div>
+            </div>
+        </section>
+
+        <section class="painel" aria-labelledby="titulo-estoque">
+            <div class="painel-topo">
+                <h3 class="painel-titulo" id="titulo-estoque">Estoque baixo</h3>
+                <a class="link-ver" href="/Produtos">Gerenciar produtos →</a>
+            </div>
+
+            @if (!Model.EstoqueBaixo.Any())
+            {
+                <div class="vazio">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 8.5l3 3 7-7" /></svg>
+                    Todos os produtos com estoque acima de 5 unidades.
+                </div>
+            }
+            else
+            {
+                <ul class="lista-estoque">
+                    @foreach (var p in Model.EstoqueBaixo)
+                    {
+                        <li>
+                            <div class="estoque-info">
+                                <span class="estoque-nome">@p.Nome</span>
+                                <span class="estoque-cat">@(p.CategoriaNome ?? "Sem categoria")</span>
+                            </div>
+                            <span class="estoque-qtd">@p.Estoque un.</span>
+                            <span class="badge-estoque @p.StatusEstoque">
+                                @if (p.Estoque == 0)
+                                {
+                                    <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" /></svg>
+                                }
+                                else
+                                {
+                                    <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 2l6.5 11.5h-13z" /><path d="M8 6.5v3M8 11.5v.5" /></svg>
+                                }
+                                @p.StatusEstoqueLabel
                             </span>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+
     </div>
+
+    <!-- ================= ÚLTIMAS ORDENS ================= -->
+    <div class="dash-linha">
+        <section class="painel" aria-labelledby="titulo-ordens">
+            <div class="painel-topo">
+                <h3 class="painel-titulo" id="titulo-ordens">Últimas ordens</h3>
+                <a class="link-ver" href="/Ordens">Ver todas →</a>
+            </div>
+            <div class="tabela-rolagem">
+                <table class="tabela">
+                    <thead>
+                        <tr>
+                            <th>Pedido</th>
+                            <th>Data</th>
+                            <th>Cliente</th>
+                            <th class="num">Valor</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.UltimasOrdens.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="vazio-celula">Nenhuma ordem encontrada.</td>
+                            </tr>
+                        }
+                        @foreach (var ordem in Model.UltimasOrdens)
+                        {
+                            var classe = ClasseStatus(ordem.Status);
+                            <tr>
+                                <td class="mono">#@ordem.Id</td>
+                                <td class="data">
+                                    @(ordem.DataPedido == DateTime.MinValue ? "—" : ordem.DataPedido.ToString("dd/MM/yyyy HH:mm"))
+                                </td>
+                                <td>@ordem.ClienteNome</td>
+                                <td class="num">R$ @ordem.ValorTotal.ToString("N2", ptBR)</td>
+                                <td>
+                                    <span class="status @classe">
+                                        @if (classe == "pago")
+                                        {
+                                            <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 8.5l3 3 7-7" /></svg>
+                                        }
+                                        else if (classe == "cancelado")
+                                        {
+                                            <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" /></svg>
+                                        }
+                                        else
+                                        {
+                                            <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="8" cy="8" r="6" /><path d="M8 5v3.5l2 1.5" /></svg>
+                                        }
+                                        @ordem.Status
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
 </div>
+
+<script type="application/json" id="dados-sparkline">@Html.Raw(sparkJson)</script>
+
+@section Scripts {
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+}

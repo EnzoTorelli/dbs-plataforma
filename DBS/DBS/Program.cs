@@ -18,6 +18,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddScoped<ClienteRepository>();
 builder.Services.AddScoped<ProdutoRepository>();
 builder.Services.AddScoped<PedidoRepository>();
+builder.Services.AddScoped<DashboardRepository>();
 
 var app = builder.Build();
 
