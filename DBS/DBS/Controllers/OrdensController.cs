@@ -22,6 +22,7 @@ namespace DBS.Controllers
             ViewData["Pagina"] = "Ordens";
 
             var ordens = _repo.GetAll();
+            _repo.CarregarItens(ordens); // produtos de cada ordem (uma consulta só)
             return View(ordens);
         }
 
@@ -37,6 +38,9 @@ namespace DBS.Controllers
         [HttpPost]
         public IActionResult Excluir(int id)
         {
+            if (HttpContext.Session.GetString("Usuario") == null)
+                return RedirectToAction("Index", "Login");
+
             _repo.Delete(id);
             return RedirectToAction("Index");
         }

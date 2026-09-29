@@ -106,6 +106,47 @@ namespace DBS.Repositories
             cmd.ExecuteNonQuery();
         }
 
+        /// <summary>
+        /// Busca os produtos de vários pedidos numa consulta só e preenche pedido.Itens.
+        /// Uso: var lista = GetUltimas(6); CarregarItens(lista);
+        /// </summary>
+        public void CarregarItens(IEnumerable<Pedido> pedidos)
+        {
+            var porId = pedidos.ToDictionary(p => p.Id);
+            if (porId.Count == 0) return;
+
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand(@"
+        SELECT i.id_pedido,
+               i.id_produto,
+               COALESCE(pr.nome, 'Produto removido') AS nome,
+               i.quantidade,
+               COALESCE(i.preco_unitario, 0)         AS preco
+        FROM item_pedido i
+        LEFT JOIN produto pr ON pr.id = i.id_produto
+        WHERE i.id_pedido = ANY(@ids)
+        ORDER BY i.id_pedido, i.id", conn);
+            cmd.Parameters.AddWithValue("@ids", porId.Keys.ToArray());
+
+            foreach (var p in porId.Values) p.Itens.Clear();
+
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+            {
+                var idPedido = r.GetInt32(0);
+                porId[idPedido].Itens.Add(new ItemPedidoResumo
+                {
+                    IdPedido = idPedido,
+                    IdProduto = r.IsDBNull(1) ? null : r.GetInt32(1),
+                    NomeProduto = r.GetString(2),
+                    Quantidade = r.GetInt32(3),
+                    PrecoUnitario = r.GetDecimal(4)
+                });
+            }
+        }
+
         private static Pedido MapPedido(NpgsqlDataReader reader) => new Pedido
         {
             Id = reader.GetInt32(reader.GetOrdinal("id")),

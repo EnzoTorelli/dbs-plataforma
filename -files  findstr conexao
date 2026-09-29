@@ -1,0 +1,72 @@
+[1mdiff --git a/Desktop/Desktop/Infra.cs b/Desktop/Desktop/Infra.cs[m
+[1mnew file mode 100644[m
+[1mindex 0000000..ff6f9e4[m
+[1m--- /dev/null[m
+[1m+++ b/Desktop/Desktop/Infra.cs[m
+[36m@@ -0,0 +1,66 @@[m
+[32m+[m[32musing System.Data;[m
+[32m+[m[32musing Npgsql;[m
+[32m+[m
+[32m+[m[32mnamespace DBS.WinForms[m
+[32m+[m[32m{[m
+[32m+[m[32m    public static class Database[m
+[32m+[m[32m    {[m
+[32m+[m[32m        private static string? _cs;[m
+[32m+[m
+[32m+[m[32m        // Lê a connection string do arquivo conexao.txt, que fica ao lado do .exe[m
+[32m+[m[32m        public static string ConnectionString[m
+[32m+[m[32m        {[m
+[32m+[m[32m            get[m
+[32m+[m[32m            {[m
+[32m+[m[32m                if (_cs != null) return _cs;[m
+[32m+[m[32m                var path = Path.Combine(AppContext.BaseDirectory, "conexao.txt");[m
+[32m+[m[32m                if (!File.Exists(path))[m
+[32m+[m[32m                    throw new FileNotFoundException([m
+[32m+[m[32m                        "Arquivo conexao.txt não encontrado ao lado do executável.", path);[m
+[32m+[m[32m                _cs = File.ReadAllText(path).Trim();[m
+[32m+[m[32m                return _cs;[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        public static NpgsqlConnection Open()[m
+[32m+[m[32m        {[m
+[32m+[m[32m            var conn = new NpgsqlConnection(ConnectionString);[m
+[32m+[m[32m            conn.Open();[m
+[32m+[m[32m            return conn;[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        public static DataTable Query(string sql, params (string nome, object? valor)[] parametros)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            using var conn = Open();[m
+[32m+[m[32m            using var cmd = new NpgsqlCommand(sql, conn);[m
+[32m+[m[32m            foreach (var (nome, valor) in parametros)[m
+[32m+[m[32m                cmd.Parameters.AddWithValue(nome, valor ?? DBNull.Value);[m
+[32m+[m[32m            using var adapter = new NpgsqlDataAdapter(cmd);[m
+[32m+[m[32m            var dt = new DataTable();[m
+[32m+[m[32m            adapter.Fill(dt);[m
+[32m+[m[32m            return dt;[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        public static int Execute(string sql, params (string nome, object? valor)[] parametros)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            using var conn = Open();[m
+[32m+[m[32m            using var cmd = new NpgsqlCommand(sql, conn);[m
+[32m+[m[32m            foreach (var (nome, valor) in parametros)[m
+[32m+[m[32m                cmd.Parameters.AddWithValue(nome, valor ?? DBNull.Value);[m
+[32m+[m[32m            return cmd.ExecuteNonQuery();[m
+[32m+[m[32m        }[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    public static class Ui[m
+[32m+[m[32m    {[m
+[32m+[m[32m        public static Button Botao(string texto, int x, int y, int largura, EventHandler aoClicar)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            var b = new Button { Text = texto, Left = x, Top = y, Width = largura, Height = 34 };[m
+[32m+[m[32m            b.Click += aoClicar;[m
+[32m+[m[32m            return b;[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        public static void Erro(Exception ex) =>[m
+[32m+[m[32m            MessageBox.Show(ex.Message, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);[m
+[32m+[m[32m    }[m
+[32m+[m[32m}[m

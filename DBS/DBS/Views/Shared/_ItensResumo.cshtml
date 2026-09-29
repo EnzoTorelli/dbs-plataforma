@@ -1,0 +1,18 @@
+@model DBS.Models.Pedido
+@*
+    Conteúdo da célula "Itens" de uma linha de pedido.
+    Mostra "2× RTX 3060, 1× Mouse +1" e, ao clicar, abre a linha de detalhe (_ItensDetalhe).
+*@
+@if (Model.Itens.Any())
+{
+    <button type="button" class="itens-resumo" data-alternar-itens="itens-@Model.Id"
+            aria-expanded="false" aria-controls="itens-@Model.Id"
+            title="@Model.ResumoItens(int.MaxValue)">
+        <span class="itens-texto">@Model.ResumoItens()</span>
+        <svg class="ico seta" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6l4 4 4-4" /></svg>
+    </button>
+}
+else
+{
+    <span class="itens-sem">Sem itens registrados</span>
+}

@@ -24,6 +24,7 @@ namespace DBS.Controllers
 
             // Reutiliza GetAll — a view pode filtrar, ou podemos trazer todos os pedidos
             var pedidos = _repo.GetAll();
+            _repo.CarregarItens(pedidos); // produtos de cada venda (uma consulta só)
             return View(pedidos);
 
         }

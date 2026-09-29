@@ -670,6 +670,105 @@ a.metric-link {
         color: var(--cor-erro);
     }
 
+/* ---------- Itens do pedido ---------- */
+
+.itens-celula {
+    max-width: 340px;
+}
+
+.itens-resumo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 4px 8px;
+    margin-left: -8px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--cor-texto);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+}
+
+    .itens-resumo:hover,
+    .itens-resumo:focus-visible {
+        border-color: var(--cor-borda);
+        background: var(--cor-fundo, rgba(0, 0, 0, .03));
+    }
+
+    .itens-resumo:focus-visible {
+        outline: 2px solid var(--viz-serie);
+        outline-offset: 1px;
+    }
+
+    .itens-resumo .itens-texto {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .itens-resumo .seta {
+        color: var(--cor-texto-fraco);
+        transition: transform .15s;
+    }
+
+    .itens-resumo[aria-expanded="true"] .seta {
+        transform: rotate(180deg);
+    }
+
+.itens-sem {
+    font-size: 13px;
+    color: var(--cor-texto-fraco);
+    font-style: italic;
+}
+
+.tabela tr.itens-detalhe > td {
+    padding: 0 0 14px;
+    background: transparent;
+}
+
+.itens-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: var(--cor-fundo, rgba(0, 0, 0, .025));
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+    .itens-tabela th,
+    .itens-tabela td {
+        padding: 8px 14px !important;
+        border-bottom: 1px solid var(--cor-borda);
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+    }
+
+    .itens-tabela th {
+        font-size: 12px;
+        color: var(--cor-texto-fraco);
+        font-weight: 500;
+    }
+
+    .itens-tabela tbody tr:last-child td {
+        border-bottom: 1px solid var(--cor-borda);
+    }
+
+    .itens-tabela tfoot td {
+        border-bottom: 0;
+        font-weight: 600;
+        color: var(--cor-texto);
+    }
+
+    .itens-tabela .num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+
 /* ---------- Vazio / carregando / erro ---------- */
 
 .vazio {

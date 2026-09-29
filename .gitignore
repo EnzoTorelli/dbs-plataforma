@@ -3,6 +3,8 @@ bin/
 obj/
 *.apk
 *.aab
+*.user
+conexao.txt
 
 **/appsettings.Development.json
 appsettings.*.json

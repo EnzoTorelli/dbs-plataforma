@@ -56,6 +56,8 @@ namespace DBS.Controllers
                 UltimasOrdens = _pedidoRepo.GetUltimas(6)
             };
 
+            _pedidoRepo.CarregarItens(vm.UltimasOrdens); // produtos de cada ordem
+
             return View(vm);
         }
 

@@ -13,9 +13,9 @@
 @functions {
     static string ClasseStatus(string? status) => (status ?? "").Trim().ToLowerInvariant() switch
     {
-        "pago"      => "pago",
+        "pago" => "pago",
         "cancelado" => "cancelado",
-        _           => "pendente"
+        _ => "pendente"
     };
 }
 
@@ -34,7 +34,8 @@
             <span>Atualizado às @Model.AtualizadoEm.ToString("HH:mm")</span>
             <button type="button" class="btn-atualizar" onclick="location.reload()" aria-label="Atualizar dados">
                 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-                    <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9" /><path d="M13.5 2.5v3h-3" />
+                    <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9" />
+                    <path d="M13.5 2.5v3h-3" />
                 </svg>
                 Atualizar
             </button>
@@ -128,9 +129,9 @@
                     <p class="painel-resumo" id="resumo-receita">&nbsp;</p>
                 </div>
                 <div class="periodos" role="radiogroup" aria-label="Período">
-                    <button type="button" class="periodo-btn" data-periodo="7"   role="radio" aria-checked="false">7 dias</button>
-                    <button type="button" class="periodo-btn" data-periodo="30"  role="radio" aria-checked="false">30 dias</button>
-                    <button type="button" class="periodo-btn" data-periodo="90"  role="radio" aria-checked="false">90 dias</button>
+                    <button type="button" class="periodo-btn" data-periodo="7" role="radio" aria-checked="false">7 dias</button>
+                    <button type="button" class="periodo-btn" data-periodo="30" role="radio" aria-checked="false">30 dias</button>
+                    <button type="button" class="periodo-btn" data-periodo="90" role="radio" aria-checked="false">90 dias</button>
                     <button type="button" class="periodo-btn" data-periodo="mes" role="radio" aria-checked="false">Mês atual</button>
                 </div>
             </div>
@@ -230,6 +231,7 @@
                             <th>Pedido</th>
                             <th>Data</th>
                             <th>Cliente</th>
+                            <th>Itens</th>
                             <th class="num">Valor</th>
                             <th>Status</th>
                         </tr>
@@ -238,7 +240,7 @@
                         @if (!Model.UltimasOrdens.Any())
                         {
                             <tr>
-                                <td colspan="5" class="vazio-celula">Nenhuma ordem encontrada.</td>
+                                <td colspan="6" class="vazio-celula">Nenhuma ordem encontrada.</td>
                             </tr>
                         }
                         @foreach (var ordem in Model.UltimasOrdens)
@@ -250,6 +252,20 @@
                                     @(ordem.DataPedido == DateTime.MinValue ? "—" : ordem.DataPedido.ToString("dd/MM/yyyy HH:mm"))
                                 </td>
                                 <td>@ordem.ClienteNome</td>
+                                <td class="itens-celula">
+                                    @if (ordem.Itens.Any())
+                                    {
+                                        <button type="button" class="itens-resumo" data-alternar-itens="itens-@ordem.Id"
+                                                aria-expanded="false" aria-controls="itens-@ordem.Id" title="@ordem.ResumoItens(int.MaxValue)">
+                                            <span class="itens-texto">@ordem.ResumoItens()</span>
+                                            <svg class="ico seta" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6l4 4 4-4" /></svg>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="itens-sem">Sem itens registrados</span>
+                                    }
+                                </td>
                                 <td class="num">R$ @ordem.ValorTotal.ToString("N2", ptBR)</td>
                                 <td>
                                     <span class="status @classe">
@@ -269,6 +285,36 @@
                                     </span>
                                 </td>
                             </tr>
+                            @if (ordem.Itens.Any())
+                            {
+                                <tr class="itens-detalhe" id="itens-@ordem.Id" hidden>
+                                    <td colspan="6">
+                                        <table class="itens-tabela">
+                                            <thead>
+                                                <tr><th>Produto</th><th class="num">Qtd</th><th class="num">Preço un.</th><th class="num">Subtotal</th></tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in ordem.Itens)
+                                                {
+                                                    <tr>
+                                                        <td>@item.NomeProduto</td>
+                                                        <td class="num">@item.Quantidade</td>
+                                                        <td class="num">R$ @item.PrecoUnitario.ToString("N2", ptBR)</td>
+                                                        <td class="num">R$ @item.Subtotal.ToString("N2", ptBR)</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <td>@ordem.TotalUnidades @(ordem.TotalUnidades == 1 ? "unidade" : "unidades")</td>
+                                                    <td colspan="2"></td>
+                                                    <td class="num">R$ @ordem.Itens.Sum(i => i.Subtotal).ToString("N2", ptBR)</td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </td>
+                                </tr>
+                            }
                         }
                     </tbody>
                 </table>

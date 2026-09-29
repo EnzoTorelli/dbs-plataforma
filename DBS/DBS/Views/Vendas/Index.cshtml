@@ -2,10 +2,12 @@
 @{
     ViewData["Title"] = "Vendas";
     ViewData["Pagina"] = "Vendas";
+    ViewData["ColspanItens"] = 7; // nº de colunas da tabela (para a linha de itens)
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/vendas.css" />
+    <link rel="stylesheet" href="~/css/pedido-itens.css" asp-append-version="true" />
 }
 
 <div class="page-wrap">
@@ -15,13 +17,13 @@
             <br>
             <h1>Vendas</h1>
             <span>Controle de vendas realizadas</span>
-            <p></>
+            <p></p>
         </div>
         <button class="btn-novo" onclick="abrirModal()">+ Nova Venda</button>
     </div>
 
     <div class="barra-busca">
-        <input type="text" id="campoBusca" placeholder="Buscar cliente..." oninput="filtrarTabela()" />
+        <input type="text" id="campoBusca" placeholder="Buscar cliente ou produto..." oninput="filtrarTabela()" />
         <select id="filtroStatus" onchange="filtrarTabela()">
             <option value="">Todos</option>
             <option value="pago">Pago</option>
@@ -35,6 +37,7 @@
                 <tr>
                     <th>Ordem de Vendas</th>
                     <th>Cliente</th>
+                    <th>Itens</th>
                     <th>Valor</th>
                     <th>Data</th>
                     <th>Status</th>
@@ -45,14 +48,17 @@
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="6" style="text-align:center; color:#888;">Nenhuma venda registrada.</td>
+                        <td colspan="7" style="text-align:center; color:#888;">Nenhuma venda registrada.</td>
                     </tr>
                 }
                 @foreach (var venda in Model)
                 {
-                    <tr>
+                    <tr class="linha-pedido"
+                        data-status="@((venda.Status ?? "Pendente").ToLowerInvariant())"
+                        data-itens="@(string.Join(" ", venda.Itens.Select(i => i.NomeProduto)).ToLowerInvariant())">
                         <td>#@venda.Id</td>
                         <td>@venda.ClienteNome</td>
+                        <td class="itens-celula"><partial name="_ItensResumo" model="venda" /></td>
                         <td>R$ @venda.ValorTotal.ToString("N2")</td>
                         <td>@(venda.DataPedido != DateTime.MinValue ? venda.DataPedido.ToString("dd/MM/yyyy") : "—")</td>
                         <td>
@@ -69,6 +75,7 @@
                             </form>
                         </td>
                     </tr>
+                    <partial name="_ItensDetalhe" model="venda" />
                 }
             </tbody>
         </table>
@@ -152,6 +159,7 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/pedido-itens.js" asp-append-version="true"></script>
     <script>
         function abrirModal() {
             document.getElementById('modalVenda').classList.add('aberto');
@@ -181,15 +189,11 @@
             if (e.target === this) fecharModalEditar();
         });
 
+        // Busca por nº, cliente, data, valor ou produto + filtro de status (pedido-itens.js)
         function filtrarTabela() {
-            const termo = document.getElementById('campoBusca').value.toLowerCase();
-            const status = document.getElementById('filtroStatus').value.toLowerCase();
-            const linhas = document.querySelectorAll('#tabelaVendas tbody tr');
-            linhas.forEach(linha => {
-                const textoOk = linha.textContent.toLowerCase().includes(termo);
-                const statusOk = status === '' || linha.textContent.toLowerCase().includes(status);
-                linha.style.display = textoOk && statusOk ? '' : 'none';
-            });
+            filtrarPedidos('tabelaVendas',
+                document.getElementById('campoBusca').value,
+                document.getElementById('filtroStatus').value);
         }
     </script>
 }

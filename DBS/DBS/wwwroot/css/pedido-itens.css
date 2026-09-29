@@ -1,0 +1,112 @@
+/* =====================================================================
+   Itens do pedido — coluna "Itens" + linha de detalhe (Vendas e Ordens)
+   Usa as variáveis de tema do site (--cor-*).
+   ===================================================================== */
+
+.itens-celula {
+    max-width: 320px;
+}
+
+.itens-resumo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 4px 8px;
+    margin-left: -8px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--cor-texto);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+}
+
+    .itens-resumo:hover,
+    .itens-resumo:focus-visible {
+        border-color: var(--cor-borda);
+        background: var(--cor-fundo, rgba(0, 0, 0, .03));
+    }
+
+    .itens-resumo:focus-visible {
+        outline: 2px solid var(--viz-serie, #2a78d6);
+        outline-offset: 1px;
+    }
+
+    .itens-resumo .itens-texto {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .itens-resumo .ico {
+        width: 14px;
+        height: 14px;
+        min-width: 14px;
+        flex: none;
+        display: block;
+    }
+
+    .itens-resumo .seta {
+        color: var(--cor-texto-fraco);
+        transition: transform .15s;
+    }
+
+    .itens-resumo[aria-expanded="true"] .seta {
+        transform: rotate(180deg);
+    }
+
+.itens-sem {
+    font-size: 13px;
+    color: var(--cor-texto-fraco);
+    font-style: italic;
+}
+
+/* Linha de detalhe */
+.tabela tr.itens-detalhe > td {
+    padding-top: 0 !important;
+    padding-bottom: 14px !important;
+    background: transparent;
+}
+
+.itens-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: var(--cor-fundo, rgba(0, 0, 0, .025));
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+}
+
+    .itens-tabela th,
+    .itens-tabela td {
+        padding: 8px 14px !important;
+        border-bottom: 1px solid var(--cor-borda);
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+        color: var(--cor-texto);
+    }
+
+    .itens-tabela th {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--cor-texto-fraco);
+        text-align: left;
+    }
+
+    .itens-tabela tfoot td {
+        border-bottom: 0;
+        font-weight: 600;
+    }
+
+    .itens-tabela .num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+@media (prefers-reduced-motion: reduce) {
+    .itens-resumo .seta { transition: none; }
+}

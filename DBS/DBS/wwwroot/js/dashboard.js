@@ -443,6 +443,17 @@
     if ('ResizeObserver' in window) new ResizeObserver(aoRedimensionar).observe(el.receita);
     else window.addEventListener('resize', aoRedimensionar);
 
+    // Últimas ordens: abre/fecha a lista de produtos de cada pedido
+    raiz.querySelectorAll('[data-alternar-itens]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const linha = document.getElementById(btn.dataset.alternarItens);
+            if (!linha) return;
+            const abrir = linha.hidden;
+            linha.hidden = !abrir;
+            btn.setAttribute('aria-expanded', String(abrir));
+        });
+    });
+
     let inicial = '30';
     try {
         const salvo = localStorage.getItem('dash_periodo');
