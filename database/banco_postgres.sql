@@ -1,6 +1,3 @@
--- Script convertido de MySQL (XAMPP) para PostgreSQL (Supabase)
--- Não precisa de CREATE DATABASE / USE: o Supabase já cria o banco "postgres" pra você.
--- Não precisa de SET FOREIGN_KEY_CHECKS: a ordem das tabelas abaixo já respeita as dependências.
 
 DROP TABLE IF EXISTS item_pedido;
 DROP TABLE IF EXISTS pedido;
@@ -39,8 +36,6 @@ INSERT INTO empresa (id, nome, cnpj, email, telefone, data_cadastro) VALUES
   (1,'TechPoint Informatica','00.000.000/0001-00','contato@techpoint.com','(19)99999-9999','2026-04-13 22:02:31'),
   (2,'TechPoint Informatica','12.345.678/0001-99','contato@techpoint.com','(19)99999-9999','2026-04-13 22:05:03');
 
--- Tabela "pedido": adicionei a coluna "valor", que não existia no banco.sql
--- original mas é usada pelo PedidoRepository.cs (p.valor AS valor_total).
 CREATE TABLE pedido (
   id           SERIAL PRIMARY KEY,
   id_cliente   INT REFERENCES cliente(id),
@@ -71,9 +66,6 @@ CREATE TABLE item_pedido (
   preco_unitario  DECIMAL(10,2)
 );
 
--- Como as colunas SERIAL já geraram valores 1,2,3... ao inserir os IDs manuais acima
--- (ex: categoria 1-4, produto 1,2,4,6), a sequence interna do Postgres fica desatualizada.
--- Isso ajusta as sequences para o próximo INSERT sem ID não colidir com os que já existem:
 SELECT setval(pg_get_serial_sequence('categoria','id'), COALESCE((SELECT MAX(id) FROM categoria), 1));
 SELECT setval(pg_get_serial_sequence('cliente','id'),   COALESCE((SELECT MAX(id) FROM cliente), 1));
 SELECT setval(pg_get_serial_sequence('empresa','id'),   COALESCE((SELECT MAX(id) FROM empresa), 1));
