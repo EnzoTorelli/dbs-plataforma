@@ -7,9 +7,18 @@
     xmlns:views="clr-namespace:DbsErpMobile.Views"
     Title="DbsErpMobile">
 
-    <ShellContent
-        Title="Produtos"
-        ContentTemplate="{DataTemplate views:ProdutoListPage}"
-        Route="ProdutoListPage" />
+    <TabBar>
+
+        <ShellContent
+            Title="Produtos"
+            ContentTemplate="{DataTemplate views:ProdutoListPage}"
+            Route="ProdutoListPage" />
+
+        <ShellContent
+            Title="Clientes"
+            ContentTemplate="{DataTemplate views:ClienteListPage}"
+            Route="ClienteListPage" />
+
+    </TabBar>
 
 </Shell>

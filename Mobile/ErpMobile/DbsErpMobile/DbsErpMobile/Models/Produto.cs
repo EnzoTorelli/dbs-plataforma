@@ -1,4 +1,4 @@
-﻿namespace DbsErpMobile.Models;
+namespace DbsErpMobile.Models;
 
 public class Produto
 {
@@ -8,4 +8,6 @@ public class Produto
     public decimal Preco { get; set; }
     public int Estoque { get; set; }
     public int IdCategoria { get; set; }
+
+    public string Imagem { get; set; }
 }

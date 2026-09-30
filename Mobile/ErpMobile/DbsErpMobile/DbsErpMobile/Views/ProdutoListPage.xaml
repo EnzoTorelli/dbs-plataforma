@@ -15,7 +15,6 @@
             Padding="20,18,20,16"
             RowDefinitions="Auto,Auto">
 
-            <!-- Espaço reservado para a logo -->
             <Label
                 Text="DBS ERP"
                 Grid.Row="0"
@@ -61,9 +60,10 @@
                         <TapGestureRecognizer Tapped="OnCarrinhoClicked" />
                     </Border.GestureRecognizers>
 
-                    <Label
-                        Text="🛒"
-                        FontSize="22"
+                    <Image
+                        Source="cart_white.svg"
+                        WidthRequest="25"
+                        HeightRequest="25"
                         HorizontalOptions="Center"
                         VerticalOptions="Center" />
 
@@ -81,25 +81,55 @@
                 Spacing="18">
 
                 <!-- TÍTULO -->
-                <Grid ColumnDefinitions="*,Auto">
+                <VerticalStackLayout
+                    Spacing="2">
 
-                    <VerticalStackLayout Grid.Column="0">
+                    <Label
+                        Text="Produtos"
+                        TextColor="#0B1F3A"
+                        FontSize="24"
+                        FontAttributes="Bold" />
+
+                    <Label
+                        Text="Confira nosso catálogo"
+                        TextColor="#718096"
+                        FontSize="13" />
+
+                </VerticalStackLayout>
+
+                <!-- PESQUISA -->
+                <Border
+                    BackgroundColor="White"
+                    Stroke="#DCE3EC"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 14"
+                    Padding="14,0">
+
+                    <Grid
+                        ColumnDefinitions="Auto,*"
+                        ColumnSpacing="10"
+                        HeightRequest="50">
 
                         <Label
-                            Text="Produtos"
+                            Grid.Column="0"
+                            Text="🔎"
+                            FontSize="20"
+                            VerticalOptions="Center" />
+
+                        <SearchBar
+                            Grid.Column="1"
+                            Placeholder="Buscar por nome ou código"
+                            PlaceholderColor="#8A94A6"
                             TextColor="#0B1F3A"
-                            FontSize="24"
-                            FontAttributes="Bold" />
+                            FontSize="14"
+                            BackgroundColor="Transparent"
+                            CancelButtonColor="#1E88E5"
+                            TextChanged="OnPesquisarProduto"
+                            VerticalOptions="Center" />
 
-                        <Label
-                            Text="Confira nosso catálogo"
-                            TextColor="#718096"
-                            FontSize="13"
-                            Margin="0,3,0,0" />
+                    </Grid>
 
-                    </VerticalStackLayout>
-
-                </Grid>
+                </Border>
 
                 <!-- LISTA DE PRODUTOS -->
                 <CollectionView

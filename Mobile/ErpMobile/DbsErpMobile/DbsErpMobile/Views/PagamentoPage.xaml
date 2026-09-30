@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="DbsErpMobile.Views.PagamentoPage"
+    BackgroundColor="#F4F7FB"
+    NavigationPage.HasNavigationBar="False">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- CABEÇALHO -->
+        <Grid
+            Grid.Row="0"
+            BackgroundColor="#0B1F3A"
+            Padding="20,18,20,16"
+            RowDefinitions="Auto,Auto">
+
+            <Label
+                Text="DBS ERP"
+                Grid.Row="0"
+                HorizontalOptions="Center"
+                TextColor="White"
+                FontSize="22"
+                FontAttributes="Bold"
+                Margin="0,4,0,18" />
+
+            <VerticalStackLayout
+                Grid.Row="1"
+                Spacing="2">
+
+                <Label
+                    Text="Pagamento"
+                    TextColor="#9CCBFF"
+                    FontSize="14" />
+
+                <Label
+                    Text="Escolha a forma de pagamento"
+                    TextColor="White"
+                    FontSize="21"
+                    FontAttributes="Bold" />
+
+            </VerticalStackLayout>
+
+        </Grid>
+
+        <!-- CONTEÚDO -->
+        <ScrollView Grid.Row="1">
+
+            <VerticalStackLayout
+                Padding="20,24,20,30"
+                Spacing="18">
+
+                <!-- RESUMO -->
+                <Border
+                    BackgroundColor="White"
+                    Stroke="#DCE3EC"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 18"
+                    Padding="18">
+
+                    <Grid ColumnDefinitions="*,Auto">
+
+                        <VerticalStackLayout
+                            Grid.Column="0"
+                            Spacing="3">
+
+                            <Label
+                                Text="TOTAL DO PEDIDO"
+                                TextColor="#8A94A6"
+                                FontSize="11"
+                                FontAttributes="Bold" />
+
+                            <Label
+                                Text="Valor total"
+                                TextColor="#0B1F3A"
+                                FontSize="15" />
+
+                        </VerticalStackLayout>
+
+                        <Label
+                            x:Name="TotalLabel"
+                            Grid.Column="1"
+                            Text="R$ 0,00"
+                            TextColor="#0B1F3A"
+                            FontSize="22"
+                            FontAttributes="Bold"
+                            VerticalOptions="Center" />
+
+                    </Grid>
+
+                </Border>
+
+                <!-- FORMAS DE PAGAMENTO -->
+                <VerticalStackLayout Spacing="10">
+
+                    <Label
+                        Text="Forma de pagamento"
+                        TextColor="#0B1F3A"
+                        FontSize="20"
+                        FontAttributes="Bold" />
+
+                    <Label
+                        Text="Selecione como o cliente pretende pagar."
+                        TextColor="#718096"
+                        FontSize="13" />
+
+                </VerticalStackLayout>
+
+                <!-- PIX -->
+                <Border
+                    x:Name="PixBorder"
+                    BackgroundColor="White"
+                    Stroke="#DCE3EC"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16">
+
+                    <Border.GestureRecognizers>
+
+                        <TapGestureRecognizer
+                            Tapped="OnPixClicked" />
+
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+
+                        <Border
+                            Grid.Column="0"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            BackgroundColor="#EAF4FF"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14">
+
+                            <Label
+                                Text="⚡"
+                                FontSize="23"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center" />
+
+                        </Border>
+
+                        <VerticalStackLayout
+                            Grid.Column="1"
+                            VerticalOptions="Center"
+                            Spacing="2">
+
+                            <Label
+                                Text="PIX"
+                                TextColor="#0B1F3A"
+                                FontSize="16"
+                                FontAttributes="Bold" />
+
+                            <Label
+                                Text="Pagamento via PIX"
+                                TextColor="#718096"
+                                FontSize="12" />
+
+                        </VerticalStackLayout>
+
+                        <Label
+                            Grid.Column="2"
+                            Text="›"
+                            TextColor="#8A94A6"
+                            FontSize="28"
+                            VerticalOptions="Center" />
+
+                    </Grid>
+
+                </Border>
+
+                <!-- DÉBITO -->
+                <Border
+                    x:Name="DebitoBorder"
+                    BackgroundColor="White"
+                    Stroke="#DCE3EC"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16">
+
+                    <Border.GestureRecognizers>
+
+                        <TapGestureRecognizer
+                            Tapped="OnDebitoClicked" />
+
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+
+                        <Border
+                            Grid.Column="0"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            BackgroundColor="#EAF4FF"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14">
+
+                            <Label
+                                Text="💳"
+                                FontSize="23"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center" />
+
+                        </Border>
+
+                        <VerticalStackLayout
+                            Grid.Column="1"
+                            VerticalOptions="Center"
+                            Spacing="2">
+
+                            <Label
+                                Text="Débito"
+                                TextColor="#0B1F3A"
+                                FontSize="16"
+                                FontAttributes="Bold" />
+
+                            <Label
+                                Text="Cartão de débito"
+                                TextColor="#718096"
+                                FontSize="12" />
+
+                        </VerticalStackLayout>
+
+                        <Label
+                            Grid.Column="2"
+                            Text="›"
+                            TextColor="#8A94A6"
+                            FontSize="28"
+                            VerticalOptions="Center" />
+
+                    </Grid>
+
+                </Border>
+
+                <!-- CRÉDITO -->
+                <Border
+                    x:Name="CreditoBorder"
+                    BackgroundColor="White"
+                    Stroke="#DCE3EC"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16">
+
+                    <Border.GestureRecognizers>
+
+                        <TapGestureRecognizer
+                            Tapped="OnCreditoClicked" />
+
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+
+                        <Border
+                            Grid.Column="0"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            BackgroundColor="#EAF4FF"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14">
+
+                            <Label
+                                Text="💳"
+                                FontSize="23"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center" />
+
+                        </Border>
+
+                        <VerticalStackLayout
+                            Grid.Column="1"
+                            VerticalOptions="Center"
+                            Spacing="2">
+
+                            <Label
+                                Text="Crédito"
+                                TextColor="#0B1F3A"
+                                FontSize="16"
+                                FontAttributes="Bold" />
+
+                            <Label
+                                Text="Cartão de crédito"
+                                TextColor="#718096"
+                                FontSize="12" />
+
+                        </VerticalStackLayout>
+
+                        <Label
+                            Grid.Column="2"
+                            Text="›"
+                            TextColor="#8A94A6"
+                            FontSize="28"
+                            VerticalOptions="Center" />
+
+                    </Grid>
+
+                </Border>
+
+                <!-- PARCELAMENTO -->
+                <Border
+                    x:Name="ParcelamentoBorder"
+                    IsVisible="False"
+                    BackgroundColor="White"
+                    Stroke="#DCE3EC"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16">
+
+                    <VerticalStackLayout Spacing="10">
+
+                        <Label
+                            Text="Parcelamento"
+                            TextColor="#0B1F3A"
+                            FontSize="16"
+                            FontAttributes="Bold" />
+
+                        <Label
+                            Text="Escolha a quantidade de parcelas."
+                            TextColor="#718096"
+                            FontSize="12" />
+
+                        <Picker
+                            x:Name="ParcelasPicker"
+                            Title="Selecione as parcelas"
+                            TextColor="#0B1F3A"
+                            TitleColor="#8A94A6"
+                            FontSize="14">
+
+                            <Picker.Items>
+                                <x:String>1x</x:String>
+                                <x:String>2x</x:String>
+                                <x:String>3x</x:String>
+                                <x:String>4x</x:String>
+                                <x:String>5x</x:String>
+                                <x:String>6x</x:String>
+                            </Picker.Items>
+
+                        </Picker>
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+                <!-- FATURAMENTO -->
+                <Border
+                    x:Name="FaturamentoBorder"
+                    BackgroundColor="White"
+                    Stroke="#DCE3EC"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="16">
+
+                    <Border.GestureRecognizers>
+
+                        <TapGestureRecognizer
+                            Tapped="OnFaturamentoClicked" />
+
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+
+                        <Border
+                            Grid.Column="0"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            BackgroundColor="#EAF4FF"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14">
+
+                            <Label
+                                Text="📄"
+                                FontSize="23"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center" />
+
+                        </Border>
+
+                        <VerticalStackLayout
+                            Grid.Column="1"
+                            VerticalOptions="Center"
+                            Spacing="2">
+
+                            <Label
+                                Text="Faturamento"
+                                TextColor="#0B1F3A"
+                                FontSize="16"
+                                FontAttributes="Bold" />
+
+                            <Label
+                                Text="Pagamento faturado"
+                                TextColor="#718096"
+                                FontSize="12" />
+
+                        </VerticalStackLayout>
+
+                        <Label
+                            Grid.Column="2"
+                            Text="›"
+                            TextColor="#8A94A6"
+                            FontSize="28"
+                            VerticalOptions="Center" />
+
+                    </Grid>
+
+                </Border>
+
+                <!-- CONTINUAR -->
+                <Button
+                    x:Name="ContinuarButton"
+                    Text="Continuar"
+                    BackgroundColor="#1E88E5"
+                    TextColor="White"
+                    FontSize="16"
+                    FontAttributes="Bold"
+                    HeightRequest="54"
+                    CornerRadius="14"
+                    Margin="0,8,0,0"
+                    Clicked="OnContinuarClicked" />
+
+            </VerticalStackLayout>
+
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>

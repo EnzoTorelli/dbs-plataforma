@@ -18,7 +18,6 @@
                 HorizontalOptions="Center"
                 Spacing="2">
 
-                <!-- Espaço reservado para a logo -->
                 <Label
                     Text="DBS ERP"
                     TextColor="White"
@@ -39,10 +38,69 @@
         <!-- CONTEÚDO -->
         <Grid
             Grid.Row="1"
-            Padding="20,22,20,10">
+            Padding="20,18,20,10"
+            RowDefinitions="Auto,*">
+
+            <!-- CLIENTE DO PEDIDO -->
+            <Border
+                Grid.Row="0"
+                BackgroundColor="White"
+                Stroke="#DCE3EC"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 16"
+                Padding="16"
+                Margin="0,0,0,16">
+
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+
+                    <Border
+                        Grid.Column="0"
+                        WidthRequest="46"
+                        HeightRequest="46"
+                        BackgroundColor="#EAF4FF"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 14">
+
+                        <Label
+                            Text="👤"
+                            FontSize="22"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center" />
+
+                    </Border>
+
+                    <VerticalStackLayout
+                        Grid.Column="1"
+                        VerticalOptions="Center"
+                        Spacing="2">
+
+                        <Label
+                            Text="CLIENTE DO PEDIDO"
+                            TextColor="#8A94A6"
+                            FontSize="10"
+                            FontAttributes="Bold" />
+
+                        <Label
+                            x:Name="NomeClienteLabel"
+                            TextColor="#0B1F3A"
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            LineBreakMode="TailTruncation" />
+
+                        <Label
+                            x:Name="CpfClienteLabel"
+                            TextColor="#718096"
+                            FontSize="11" />
+
+                    </VerticalStackLayout>
+
+                </Grid>
+
+            </Border>
 
             <CollectionView
                 x:Name="ItensCollectionView"
+                Grid.Row="1"
                 SelectionMode="None">
 
                 <CollectionView.EmptyView>
@@ -235,7 +293,7 @@
                             VerticalOptions="Center" />
 
                         <Label
-                            Text="Finalizar Pedido"
+                            Text="Continuar para pagamento"
                             TextColor="White"
                             FontSize="16"
                             FontAttributes="Bold"

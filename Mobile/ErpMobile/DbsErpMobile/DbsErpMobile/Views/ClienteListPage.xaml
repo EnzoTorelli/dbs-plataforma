@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="DbsErpMobile.Views.ClienteListPage"
+    BackgroundColor="#F4F7FB"
+    NavigationPage.HasNavigationBar="False">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- CABEÇALHO -->
+        <Grid
+            Grid.Row="0"
+            BackgroundColor="#0B1F3A"
+            Padding="20,18,20,16"
+            RowDefinitions="Auto,Auto">
+
+            <Label
+                Text="DBS ERP"
+                Grid.Row="0"
+                HorizontalOptions="Center"
+                TextColor="White"
+                FontSize="22"
+                FontAttributes="Bold"
+                Margin="0,4,0,18" />
+
+            <VerticalStackLayout
+                Grid.Row="1"
+                Spacing="2">
+
+                <Label
+                    Text="Clientes"
+                    TextColor="#9CCBFF"
+                    FontSize="14" />
+
+                <Label
+                    Text="Selecione um cliente"
+                    TextColor="White"
+                    FontSize="21"
+                    FontAttributes="Bold" />
+
+            </VerticalStackLayout>
+
+        </Grid>
+
+        <!-- CONTEÚDO -->
+        <ScrollView Grid.Row="1">
+
+            <VerticalStackLayout
+                Padding="20,22,20,30"
+                Spacing="18">
+
+                <!-- TÍTULO -->
+                <VerticalStackLayout
+                    Spacing="2">
+
+                    <Label
+                        Text="Clientes"
+                        TextColor="#0B1F3A"
+                        FontSize="24"
+                        FontAttributes="Bold" />
+
+                    <Label
+                        Text="Busque pelo nome ou CPF/CNPJ"
+                        TextColor="#718096"
+                        FontSize="13" />
+
+                </VerticalStackLayout>
+
+                <!-- PESQUISA -->
+                <Border
+                    BackgroundColor="White"
+                    Stroke="#DCE3EC"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 14"
+                    Padding="14,0">
+
+                    <Grid
+                        ColumnDefinitions="Auto,*"
+                        ColumnSpacing="10"
+                        HeightRequest="50">
+
+                        <Label
+                            Grid.Column="0"
+                            Text="🔎"
+                            FontSize="20"
+                            VerticalOptions="Center" />
+
+                        <SearchBar
+                            Grid.Column="1"
+                            Placeholder="Nome ou CPF/CNPJ"
+                            PlaceholderColor="#8A94A6"
+                            TextColor="#0B1F3A"
+                            FontSize="14"
+                            BackgroundColor="Transparent"
+                            CancelButtonColor="#1E88E5"
+                            TextChanged="OnPesquisarCliente"
+                            VerticalOptions="Center" />
+
+                    </Grid>
+
+                </Border>
+
+                <!-- LISTA -->
+                <CollectionView
+                    x:Name="ClientesCollectionView"
+                    SelectionMode="None">
+
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout
+                            Orientation="Vertical"
+                            ItemSpacing="14" />
+                    </CollectionView.ItemsLayout>
+
+                    <CollectionView.ItemTemplate>
+
+                        <DataTemplate>
+
+                            <Border
+                                BackgroundColor="White"
+                                Stroke="#E5EAF0"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 18"
+                                Padding="0">
+
+                                <Border.Shadow>
+                                    <Shadow
+                                        Brush="#20000000"
+                                        Offset="0,4"
+                                        Radius="12"
+                                        Opacity="0.18" />
+                                </Border.Shadow>
+
+                                <Grid
+                                    Padding="16"
+                                    ColumnDefinitions="56,*"
+                                    ColumnSpacing="14">
+
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Tapped="OnClienteTapped" />
+                                    </Grid.GestureRecognizers>
+
+                                    <!-- ÍCONE DO CLIENTE -->
+                                    <Border
+                                        Grid.Column="0"
+                                        WidthRequest="56"
+                                        HeightRequest="56"
+                                        BackgroundColor="#EAF4FF"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 16">
+
+                                        <Label
+                                            Text="👤"
+                                            FontSize="26"
+                                            HorizontalOptions="Center"
+                                            VerticalOptions="Center" />
+
+                                    </Border>
+
+                                    <!-- INFORMAÇÕES -->
+                                    <VerticalStackLayout
+                                        Grid.Column="1"
+                                        VerticalOptions="Center"
+                                        Spacing="4">
+
+                                        <Label
+                                            Text="{Binding Nome}"
+                                            TextColor="#0B1F3A"
+                                            FontSize="17"
+                                            FontAttributes="Bold"
+                                            LineBreakMode="TailTruncation" />
+
+                                        <Label
+                                            Text="{Binding Cpf}"
+                                            TextColor="#718096"
+                                            FontSize="13" />
+
+                                        <Label
+                                            Text="{Binding Telefone}"
+                                            TextColor="#8A94A6"
+                                            FontSize="12" />
+
+                                    </VerticalStackLayout>
+
+                                </Grid>
+
+                            </Border>
+
+                        </DataTemplate>
+
+                    </CollectionView.ItemTemplate>
+
+                </CollectionView>
+
+            </VerticalStackLayout>
+
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>
