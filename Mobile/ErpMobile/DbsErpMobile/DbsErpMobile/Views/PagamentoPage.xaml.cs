@@ -1,3 +1,4 @@
+using System.Globalization;
 using DbsErpMobile.Services;
 
 namespace DbsErpMobile.Views;
@@ -42,7 +43,34 @@ public partial class PagamentoPage : ContentPage
 
     private void AtualizarTotal()
     {
-        TotalLabel.Text = $"R$ {_carrinhoService.ValorTotal:F2}";
+        TotalLabel.Text = _carrinhoService.ValorTotal.ToString(
+            "C2",
+            CultureInfo.GetCultureInfo("pt-BR"));
+
+        AtualizarValorParcela();
+    }
+
+    private void AtualizarValorParcela()
+    {
+        if (ParcelasPicker.SelectedIndex < 0)
+        {
+            ValorParcelaLabel.Text = "Selecione as parcelas para ver o valor.";
+            return;
+        }
+
+        int quantidade = ParcelasPicker.SelectedIndex + 1;
+        decimal valorParcela = decimal.Round(
+            _carrinhoService.ValorTotal / quantidade,
+            2,
+            MidpointRounding.AwayFromZero);
+
+        ValorParcelaLabel.Text =
+            $"{quantidade}x de {valorParcela.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))}";
+    }
+
+    private void OnParcelasChanged(object sender, EventArgs e)
+    {
+        AtualizarValorParcela();
     }
 
     private void LimparSelecao()

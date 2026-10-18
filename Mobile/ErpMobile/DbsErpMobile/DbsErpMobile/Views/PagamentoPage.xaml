@@ -318,7 +318,8 @@
                                 Title="Selecione as parcelas"
                                 TextColor="#0B1F3A"
                                 TitleColor="#8A94A6"
-                                FontSize="14">
+                                FontSize="14"
+                                SelectedIndexChanged="OnParcelasChanged">
 
                             <Picker.Items>
                                 <x:String>1x</x:String>
@@ -329,6 +330,12 @@
                                 <x:String>6x</x:String>
                             </Picker.Items>
                         </Picker>
+
+                        <Label x:Name="ValorParcelaLabel"
+                               Text="Selecione as parcelas para ver o valor."
+                               TextColor="#1E88E5"
+                               FontSize="14"
+                               FontAttributes="Bold" />
                     </VerticalStackLayout>
                 </Border>
 
