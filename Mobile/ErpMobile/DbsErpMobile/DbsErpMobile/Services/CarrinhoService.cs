@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using DbsErpMobile.Models;
 
 namespace DbsErpMobile.Services;
@@ -10,6 +10,7 @@ public class CarrinhoService
     public void Adicionar(Produto produto, int quantidade)
     {
         var itemExistente = Itens.FirstOrDefault(i => i.IdProduto == produto.Id);
+
         if (itemExistente != null)
         {
             itemExistente.Quantidade += quantidade;
@@ -20,6 +21,7 @@ public class CarrinhoService
             {
                 IdProduto = produto.Id,
                 NomeProduto = produto.Nome,
+                Imagem = produto.Imagem,
                 Quantidade = quantidade,
                 PrecoUnitario = produto.Preco
             });

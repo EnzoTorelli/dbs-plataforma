@@ -1,6 +1,8 @@
 using DBS.Models;
 using DBS.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace DBS.Controllers
 {
@@ -49,6 +51,14 @@ namespace DBS.Controllers
             var produto = _repo.GetById(id);
             if (produto == null) return RedirectToAction("Index");
             return Json(produto);
+        }
+
+        [HttpGet]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public IActionResult Api()
+        {
+            var produtos = _repo.GetAll();
+            return Json(produtos);
         }
 
         [HttpPost]
