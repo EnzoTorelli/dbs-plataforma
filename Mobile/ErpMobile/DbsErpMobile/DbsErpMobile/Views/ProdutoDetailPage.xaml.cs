@@ -30,7 +30,7 @@ public partial class ProdutoDetailPage : ContentPage
     {
         NomeLabel.Text = _produto.Nome;
         DescricaoLabel.Text = _produto.Descricao;
-        PrecoLabel.Text = $"R$ {_produto.Preco:F2}";
+        PrecoLabel.Text = $"R$ {_produto.Preco.ToString("N2", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))}";
         EstoqueLabel.Text = $"Estoque disponível: {_produto.Estoque}";
     }
 
