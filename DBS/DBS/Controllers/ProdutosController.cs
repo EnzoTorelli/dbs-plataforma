@@ -1,6 +1,8 @@
 using DBS.Models;
 using DBS.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace DBS.Controllers
 {
@@ -52,6 +54,7 @@ namespace DBS.Controllers
         }
 
         [HttpGet]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public IActionResult Api()
         {
             var produtos = _repo.GetAll();

@@ -19,6 +19,15 @@ namespace DbsErpMobile
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
+            builder.Services.AddSingleton<HttpClient>(_ =>
+                new HttpClient
+                {
+                    BaseAddress = new Uri(ApiService.BaseUrl),
+                    Timeout = TimeSpan.FromSeconds(20)
+                });
+
+            builder.Services.AddSingleton<ApiService>();
+
             builder.Services.AddSingleton<CarrinhoService>();
             builder.Services.AddSingleton<ClienteService>();
             builder.Services.AddSingleton<PedidoService>();
