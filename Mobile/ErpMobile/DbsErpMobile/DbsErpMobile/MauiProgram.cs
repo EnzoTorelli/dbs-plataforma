@@ -27,6 +27,7 @@ namespace DbsErpMobile
             builder.Services.AddTransient<Views.NovoPedidoPage>();
             builder.Services.AddTransient<Views.PagamentoPage>();
             builder.Services.AddTransient<Views.RevisaoPedidoPage>();
+            builder.Services.AddTransient<Views.VendasDiaPage>();
 
             return builder.Build();
         }

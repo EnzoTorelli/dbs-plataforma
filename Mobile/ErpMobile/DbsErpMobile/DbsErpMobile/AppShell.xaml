@@ -3,22 +3,43 @@
     x:Class="DbsErpMobile.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:DbsErpMobile"
     xmlns:views="clr-namespace:DbsErpMobile.Views"
-    Title="DbsErpMobile">
+    Title="DBS ERP"
+    FlyoutBehavior="Flyout"
+    FlyoutBackgroundColor="#0B1F3A"
+    FlyoutWidth="280">
 
-    <TabBar>
+    <FlyoutItem
+        Title="Produtos"
+        Route="Produtos"
+        FlyoutDisplayOptions="AsSingleItem">
 
         <ShellContent
             Title="Produtos"
-            ContentTemplate="{DataTemplate views:ProdutoListPage}"
-            Route="ProdutoListPage" />
+            Route="ProdutoListPage"
+            ContentTemplate="{DataTemplate views:ProdutoListPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem
+        Title="Clientes"
+        Route="Clientes"
+        FlyoutDisplayOptions="AsSingleItem">
 
         <ShellContent
             Title="Clientes"
-            ContentTemplate="{DataTemplate views:ClienteListPage}"
-            Route="ClienteListPage" />
+            Route="ClienteListPage"
+            ContentTemplate="{DataTemplate views:ClienteListPage}" />
+    </FlyoutItem>
 
-    </TabBar>
+    <FlyoutItem
+        Title="Vendas do dia"
+        Route="VendasDia"
+        FlyoutDisplayOptions="AsSingleItem">
+
+        <ShellContent
+            Title="Vendas do dia"
+            Route="VendasDiaPage"
+            ContentTemplate="{DataTemplate views:VendasDiaPage}" />
+    </FlyoutItem>
 
 </Shell>

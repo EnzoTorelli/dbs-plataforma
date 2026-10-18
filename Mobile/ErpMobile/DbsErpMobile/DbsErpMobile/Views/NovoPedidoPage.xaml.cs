@@ -34,6 +34,6 @@ public partial class NovoPedidoPage : ContentPage
 
     private async void OnAdicionarProdutosClicked(object sender, EventArgs e)
     {
-        await Shell.Current.GoToAsync(nameof(ProdutoListPage));
+        await Shell.Current.GoToAsync("//ProdutoListPage");
     }
 }

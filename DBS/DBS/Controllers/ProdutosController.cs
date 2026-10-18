@@ -51,6 +51,13 @@ namespace DBS.Controllers
             return Json(produto);
         }
 
+        [HttpGet]
+        public IActionResult Api()
+        {
+            var produtos = _repo.GetAll();
+            return Json(produtos);
+        }
+
         [HttpPost]
         public IActionResult Atualizar(Produto produto)
         {

@@ -7,7 +7,7 @@ public partial class PagamentoPage : ContentPage
     private readonly CarrinhoService _carrinhoService;
     private readonly PedidoService _pedidoService;
 
-    private string _formaPagamento;
+    private string? _formaPagamento;
     private int? _quantidadeParcelas;
 
     public PagamentoPage(
@@ -22,6 +22,20 @@ public partial class PagamentoPage : ContentPage
         AtualizarTotal();
     }
 
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        AtualizarTotal();
+
+        _formaPagamento = null;
+        _quantidadeParcelas = null;
+
+        LimparSelecao();
+        ParcelamentoBorder.IsVisible = false;
+        ParcelasPicker.SelectedIndex = -1;
+    }
+
     private void AtualizarTotal()
     {
         TotalLabel.Text = $"R$ {_carrinhoService.ValorTotal:F2}";
@@ -29,44 +43,15 @@ public partial class PagamentoPage : ContentPage
 
     private void LimparSelecao()
     {
+        DinheiroBorder.Stroke = Color.FromArgb("#DCE3EC");
         PixBorder.Stroke = Color.FromArgb("#DCE3EC");
-        DebitoBorder.Stroke = Color.FromArgb("#DCE3EC");
+        FaturadoBorder.Stroke = Color.FromArgb("#DCE3EC");
         CreditoBorder.Stroke = Color.FromArgb("#DCE3EC");
-        FaturamentoBorder.Stroke = Color.FromArgb("#DCE3EC");
-    }
 
-    private void OnPixClicked(object sender, TappedEventArgs e)
-    {
-        SelecionarFormaPagamento("PIX", PixBorder);
-
-        ParcelamentoBorder.IsVisible = false;
-        ParcelasPicker.SelectedIndex = -1;
-        _quantidadeParcelas = null;
-    }
-
-    private void OnDebitoClicked(object sender, TappedEventArgs e)
-    {
-        SelecionarFormaPagamento("Débito", DebitoBorder);
-
-        ParcelamentoBorder.IsVisible = false;
-        ParcelasPicker.SelectedIndex = -1;
-        _quantidadeParcelas = null;
-    }
-
-    private void OnCreditoClicked(object sender, TappedEventArgs e)
-    {
-        SelecionarFormaPagamento("Crédito", CreditoBorder);
-
-        ParcelamentoBorder.IsVisible = true;
-    }
-
-    private void OnFaturamentoClicked(object sender, TappedEventArgs e)
-    {
-        SelecionarFormaPagamento("Faturamento", FaturamentoBorder);
-
-        ParcelamentoBorder.IsVisible = false;
-        ParcelasPicker.SelectedIndex = -1;
-        _quantidadeParcelas = null;
+        DinheiroBorder.StrokeThickness = 1;
+        PixBorder.StrokeThickness = 1;
+        FaturadoBorder.StrokeThickness = 1;
+        CreditoBorder.StrokeThickness = 1;
     }
 
     private void SelecionarFormaPagamento(string forma, Border border)
@@ -77,6 +62,37 @@ public partial class PagamentoPage : ContentPage
 
         border.Stroke = Color.FromArgb("#1E88E5");
         border.StrokeThickness = 2;
+    }
+
+    private void OnDinheiroClicked(object sender, TappedEventArgs e)
+    {
+        SelecionarFormaPagamento("Dinheiro", DinheiroBorder);
+        OcultarParcelamento();
+    }
+
+    private void OnPixClicked(object sender, TappedEventArgs e)
+    {
+        SelecionarFormaPagamento("Pix", PixBorder);
+        OcultarParcelamento();
+    }
+
+    private void OnFaturadoClicked(object sender, TappedEventArgs e)
+    {
+        SelecionarFormaPagamento("Faturado", FaturadoBorder);
+        OcultarParcelamento();
+    }
+
+    private void OnCreditoClicked(object sender, TappedEventArgs e)
+    {
+        SelecionarFormaPagamento("Cartão de crédito", CreditoBorder);
+        ParcelamentoBorder.IsVisible = true;
+    }
+
+    private void OcultarParcelamento()
+    {
+        ParcelamentoBorder.IsVisible = false;
+        ParcelasPicker.SelectedIndex = -1;
+        _quantidadeParcelas = null;
     }
 
     private async void OnContinuarClicked(object sender, EventArgs e)
@@ -91,7 +107,7 @@ public partial class PagamentoPage : ContentPage
             return;
         }
 
-        if (_formaPagamento == "Crédito")
+        if (_formaPagamento == "Cartão de crédito")
         {
             if (ParcelasPicker.SelectedIndex < 0)
             {
