@@ -41,11 +41,15 @@ public partial class PagamentoPage : ContentPage
         CondicaoFaturamentoEntry.Text = string.Empty;
     }
 
+    private static string FormatarMoeda(decimal valor)
+    {
+        var cultura = CultureInfo.GetCultureInfo("pt-BR");
+        return $"R$ {valor.ToString("#,##0.00", cultura)}";
+    }
+
     private void AtualizarTotal()
     {
-        TotalLabel.Text = _carrinhoService.ValorTotal.ToString(
-            "C2",
-            CultureInfo.GetCultureInfo("pt-BR"));
+        TotalLabel.Text = FormatarMoeda(_carrinhoService.ValorTotal);
 
         AtualizarValorParcela();
     }
@@ -65,7 +69,7 @@ public partial class PagamentoPage : ContentPage
             MidpointRounding.AwayFromZero);
 
         ValorParcelaLabel.Text =
-            $"{quantidade}x de {valorParcela.ToString("C2", CultureInfo.GetCultureInfo("pt-BR"))}";
+            $"{quantidade}x de {FormatarMoeda(valorParcela)}";
     }
 
     private void OnParcelasChanged(object sender, EventArgs e)
