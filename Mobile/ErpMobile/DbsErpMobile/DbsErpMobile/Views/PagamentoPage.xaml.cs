@@ -32,8 +32,12 @@ public partial class PagamentoPage : ContentPage
         _quantidadeParcelas = null;
 
         LimparSelecao();
+
         ParcelamentoBorder.IsVisible = false;
         ParcelasPicker.SelectedIndex = -1;
+
+        CondicaoFaturamentoBorder.IsVisible = false;
+        CondicaoFaturamentoEntry.Text = string.Empty;
     }
 
     private void AtualizarTotal()
@@ -68,23 +72,27 @@ public partial class PagamentoPage : ContentPage
     {
         SelecionarFormaPagamento("Dinheiro", DinheiroBorder);
         OcultarParcelamento();
+        CondicaoFaturamentoBorder.IsVisible = false;
     }
 
     private void OnPixClicked(object sender, TappedEventArgs e)
     {
         SelecionarFormaPagamento("Pix", PixBorder);
         OcultarParcelamento();
+        CondicaoFaturamentoBorder.IsVisible = false;
     }
 
     private void OnFaturadoClicked(object sender, TappedEventArgs e)
     {
         SelecionarFormaPagamento("Faturado", FaturadoBorder);
         OcultarParcelamento();
+        CondicaoFaturamentoBorder.IsVisible = true;
     }
 
     private void OnCreditoClicked(object sender, TappedEventArgs e)
     {
         SelecionarFormaPagamento("Cartão de crédito", CreditoBorder);
+        CondicaoFaturamentoBorder.IsVisible = false;
         ParcelamentoBorder.IsVisible = true;
     }
 
@@ -107,6 +115,25 @@ public partial class PagamentoPage : ContentPage
             return;
         }
 
+        string formaPagamentoFinal = _formaPagamento;
+
+        if (_formaPagamento == "Faturado")
+        {
+            string condicao = CondicaoFaturamentoEntry.Text?.Trim() ?? "";
+
+            if (string.IsNullOrWhiteSpace(condicao))
+            {
+                await DisplayAlertAsync(
+                    "Condição de faturamento",
+                    "Digite o prazo de faturamento. Exemplo: 30/60/90.",
+                    "OK");
+
+                return;
+            }
+
+            formaPagamentoFinal = $"Faturado ({condicao})";
+        }
+
         if (_formaPagamento == "Cartão de crédito")
         {
             if (ParcelasPicker.SelectedIndex < 0)
@@ -123,7 +150,7 @@ public partial class PagamentoPage : ContentPage
         }
 
         _pedidoService.DefinirPagamento(
-            _formaPagamento,
+            formaPagamentoFinal,
             _quantidadeParcelas);
 
         await Shell.Current.GoToAsync(nameof(RevisaoPedidoPage));

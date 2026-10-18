@@ -219,6 +219,34 @@
                     </Grid>
                 </Border>
 
+                <!-- CONDIÇÃO DE FATURAMENTO -->
+                <Border x:Name="CondicaoFaturamentoBorder"
+                        IsVisible="False"
+                        BackgroundColor="White"
+                        Stroke="#DCE3EC"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="16">
+
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Condição de faturamento"
+                               TextColor="#0B1F3A"
+                               FontSize="16"
+                               FontAttributes="Bold" />
+
+                        <Label Text="Digite os prazos em dias, separados por barra. Ex.: 30/60/90."
+                               TextColor="#718096"
+                               FontSize="12" />
+
+                        <Entry x:Name="CondicaoFaturamentoEntry"
+                               Placeholder="Ex.: 30/60/90/120"
+                               Keyboard="Text"
+                               TextColor="#0B1F3A"
+                               PlaceholderColor="#8A94A6"
+                               FontSize="14" />
+                    </VerticalStackLayout>
+                </Border>
+
                 <!-- CARTÃO DE CRÉDITO -->
                 <Border x:Name="CreditoBorder"
                         BackgroundColor="White"
