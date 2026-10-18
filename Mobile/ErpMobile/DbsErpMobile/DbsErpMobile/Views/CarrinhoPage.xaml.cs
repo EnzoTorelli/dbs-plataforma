@@ -47,7 +47,7 @@ public partial class CarrinhoPage : ContentPage
 
     private void AtualizarTotal()
     {
-        TotalLabel.Text = $"Total: R$ {_carrinhoService.ValorTotal:F2}";
+        TotalLabel.Text = $"Total: R$ {_carrinhoService.ValorTotal.ToString("N2", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))}";
     }
 
     private async void OnFinalizarClicked(object sender, EventArgs e)

@@ -206,7 +206,7 @@
                                         HorizontalOptions="End" />
 
                                     <Label
-                                        Text="{Binding Subtotal, StringFormat='R$ {0:F2}'}"
+                                        Text="{Binding Subtotal, StringFormat='R$ {0:N2}'}"
                                         TextColor="#0B1F3A"
                                         FontSize="15"
                                         FontAttributes="Bold"
