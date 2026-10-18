@@ -10,17 +10,6 @@
     FlyoutWidth="280">
 
     <FlyoutItem
-        Title="Produtos"
-        Route="Produtos"
-        FlyoutDisplayOptions="AsSingleItem">
-
-        <ShellContent
-            Title="Produtos"
-            Route="ProdutoListPage"
-            ContentTemplate="{DataTemplate views:ProdutoListPage}" />
-    </FlyoutItem>
-
-    <FlyoutItem
         Title="Clientes"
         Route="Clientes"
         FlyoutDisplayOptions="AsSingleItem">
@@ -29,6 +18,17 @@
             Title="Clientes"
             Route="ClienteListPage"
             ContentTemplate="{DataTemplate views:ClienteListPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem
+        Title="Produtos"
+        Route="Produtos"
+        FlyoutDisplayOptions="AsSingleItem">
+
+        <ShellContent
+            Title="Produtos"
+            Route="ProdutoListPage"
+            ContentTemplate="{DataTemplate views:ProdutoListPage}" />
     </FlyoutItem>
 
     <FlyoutItem

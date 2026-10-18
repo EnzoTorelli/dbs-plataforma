@@ -62,17 +62,16 @@ public partial class CarrinhoPage : ContentPage
             return;
         }
 
-        // TODO:
-        // Aqui futuramente vamos abrir a etapa de pagamento
-        // e envio para o vendedor interno.
+        if (_clienteService.ClienteSelecionado == null)
+        {
+            await DisplayAlertAsync(
+                "Cliente não selecionado",
+                "Selecione um cliente antes de finalizar o pedido.",
+                "OK");
 
-        await DisplayAlertAsync(
-            "Pedido enviado",
-            "Seu pedido foi enviado com sucesso! (simulação)",
-            "OK");
+            return;
+        }
 
-        _carrinhoService.Limpar();
-
-        await Shell.Current.GoToAsync("..");
+        await Shell.Current.GoToAsync(nameof(PagamentoPage));
     }
 }
