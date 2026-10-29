@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="DbsErpMobile.Views.VendasDiaPage"
+    Title="Vendas do dia"
+    BackgroundColor="#F4F7FB">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <VerticalStackLayout
+            Grid.Row="0"
+            BackgroundColor="#0B1F3A"
+            Padding="20,22,20,20"
+            Spacing="5">
+
+            <Label
+                Text="DBS ERP"
+                TextColor="White"
+                FontSize="22"
+                FontAttributes="Bold"
+                HorizontalOptions="Center" />
+
+            <Label
+                Text="Vendas do dia"
+                TextColor="#9CCBFF"
+                FontSize="14"
+                HorizontalOptions="Center" />
+
+        </VerticalStackLayout>
+
+        <VerticalStackLayout
+            Grid.Row="1"
+            Padding="20"
+            Spacing="12">
+
+            <Label
+                Text="Pedidos realizados"
+                TextColor="#0B1F3A"
+                FontSize="21"
+                FontAttributes="Bold" />
+
+            <Label
+                x:Name="ResumoLabel"
+                Text="Nenhum pedido registrado hoje."
+                TextColor="#718096"
+                FontSize="14" />
+
+            <CollectionView
+                x:Name="VendasCollectionView"
+                SelectionMode="None">
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border
+                            BackgroundColor="White"
+                            Stroke="#DCE3EC"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="16"
+                            Margin="0,0,0,12">
+
+                            <VerticalStackLayout Spacing="6">
+
+                                <Label
+                                    Text="{Binding ClienteNome}"
+                                    TextColor="#0B1F3A"
+                                    FontSize="16"
+                                    FontAttributes="Bold" />
+
+                                <Label
+                                    Text="{Binding DataPedido, StringFormat='Data: {0:dd/MM/yyyy HH:mm}'}"
+                                    TextColor="#718096"
+                                    FontSize="12" />
+
+                                <Label
+                                    Text="{Binding FormaPagamento}"
+                                    TextColor="#4A5A6A"
+                                    FontSize="13" />
+
+                                <Grid ColumnDefinitions="*,Auto">
+
+                                    <Label
+                                        Text="{Binding Status}"
+                                        TextColor="#1E88E5"
+                                        FontSize="12"
+                                        VerticalOptions="Center" />
+
+                                    <Label
+                                        Grid.Column="1"
+                                        Text="{Binding ValorTotal, StringFormat='R$ {0:F2}'}"
+                                        TextColor="#0B1F3A"
+                                        FontSize="17"
+                                        FontAttributes="Bold"
+                                        VerticalOptions="Center" />
+
+                                </Grid>
+
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+            </CollectionView>
+
+        </VerticalStackLayout>
+
+    </Grid>
+
+</ContentPage>
