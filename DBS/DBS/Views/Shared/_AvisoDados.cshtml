@@ -1,0 +1,89 @@
+﻿<style>
+    .aviso-dados-fundo {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 16px;
+    }
+
+        .aviso-dados-fundo.aberto {
+            display: flex;
+        }
+
+    .aviso-dados-caixa {
+        background: #fff;
+        color: #1f2937;
+        border-radius: 12px;
+        max-width: 480px;
+        width: 100%;
+        padding: 24px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+        .aviso-dados-caixa h2 {
+            font-size: 1.25rem;
+            margin: 0 0 12px;
+        }
+
+        .aviso-dados-caixa ul {
+            padding-left: 20px;
+            margin: 12px 0 20px;
+        }
+
+        .aviso-dados-caixa li {
+            margin-bottom: 6px;
+        }
+
+        .aviso-dados-caixa button {
+            background: #2563eb;
+            color: #fff;
+            border: 0;
+            border-radius: 8px;
+            padding: 10px 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+
+    html[data-tema="escuro"] .aviso-dados-caixa {
+        background: #1f2937;
+        color: #f3f4f6;
+    }
+</style>
+
+<div class="aviso-dados-fundo" id="avisoDados" role="dialog" aria-modal="true" aria-labelledby="avisoDadosTitulo">
+    <div class="aviso-dados-caixa">
+        <h2 id="avisoDadosTitulo">Cuidado com os dados de clientes</h2>
+        <p>Os dados de clientes (nome, CPF/CNPJ, telefone, e-mail e endereço) são confidenciais.</p>
+        <ul>
+            <li>Acesse apenas o que for necessário para o seu trabalho.</li>
+            <li>Não compartilhe dados por mensagem, e-mail ou prints.</li>
+            <li>Não deixe o sistema aberto quando se ausentar.</li>
+            <li>Nunca compartilhe sua senha.</li>
+        </ul>
+        <button type="button" id="btnAceitoAviso">Li e estou ciente</button>
+    </div>
+</div>
+
+<script>
+    (function () {
+        var chave = 'avisoDadosAceito';
+        var fundo = document.getElementById('avisoDados');
+        var botao = document.getElementById('btnAceitoAviso');
+        if (!fundo || !botao) return;
+
+        try { if (sessionStorage.getItem(chave)) return; } catch (e) {}
+
+        fundo.classList.add('aberto');
+        botao.focus();
+
+        botao.addEventListener('click', function () {
+            try { sessionStorage.setItem(chave, '1'); } catch (e) {}
+            fundo.classList.remove('aberto');
+        });
+    })();
+</script>
