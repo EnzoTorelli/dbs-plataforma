@@ -71,6 +71,7 @@ builder.Services.AddScoped<ProdutoRepository>();
 builder.Services.AddScoped<PedidoRepository>();
 builder.Services.AddScoped<DashboardRepository>();
 builder.Services.AddScoped<VendedorAppRepository>();
+builder.Services.AddScoped<PedidoAppRepository>();
 builder.Services.AddSingleton<JwtTokenService>();
 builder.Services.AddSingleton<IPasswordHasher<string>, PasswordHasher<string>>();
 
@@ -98,5 +99,4 @@ app.MapControllerRoute(
     pattern: "{controller=Login}/{action=Index}/{id?}");
 
 app.MapControllers(); // necessário para os Controllers com [ApiController] (rotas api/...) funcionarem
-
 app.Run();
