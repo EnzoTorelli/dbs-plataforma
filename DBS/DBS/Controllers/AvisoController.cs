@@ -12,13 +12,13 @@ public class AvisoController : ControllerBase
     public IActionResult Obter() => Ok(new
     {
         versao = "1.0",
-        titulo = "Cuidado com os dados de clientes",
+        titulo = "Aviso de Confidencialidade e Proteção de Dados - LGPD (Lei nº 13.709/2018)",
         itens = new[]
         {
-            "Os dados de clientes são confidenciais.",
-            "Acesse apenas o que for necessário para o seu trabalho.",
-            "Não compartilhe dados por mensagem, e-mail ou prints.",
-            "Não compartilhe sua senha."
+            "Confidencialidade (Art. 46): Os dados de clientes são estritamente confidenciais e protegidos por lei.",
+            "Necessidade de Acesso (Art. 6º, III): Acesse apenas os dados estritamente necessários para o desempenho das suas funções.",
+            "Restrição de Compartilhamento (Art. 46): É proibido compartilhar dados por mensagens, e-mails, capturas de ecrã (prints) ou meios não autorizados.",
+            "Segurança de Credenciais (Art. 46): A sua palavra-passe de acesso é pessoal e intransferível. Não a compartilhe."
         }
     });
 }
