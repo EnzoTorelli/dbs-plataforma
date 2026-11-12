@@ -244,7 +244,7 @@
                                                 FontSize="11" />
 
                                             <Label
-                                                Text="{Binding Preco, StringFormat='R$ {0:F2}'}"
+                                                Text="{Binding Preco, StringFormat='R$ {0:N2}'}"
                                                 TextColor="#0B1F3A"
                                                 FontSize="20"
                                                 FontAttributes="Bold" />

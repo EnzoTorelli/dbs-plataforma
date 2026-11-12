@@ -22,6 +22,12 @@ public partial class RevisaoPedidoPage : ContentPage
         CarregarDados();
     }
 
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        CarregarDados();
+    }
+
     private void CarregarDados()
     {
         var cliente = _clienteService.ClienteSelecionado;
@@ -38,7 +44,6 @@ public partial class RevisaoPedidoPage : ContentPage
         }
 
         ItensCollectionView.ItemsSource = _carrinhoService.Itens;
-
         TotalLabel.Text = $"R$ {_carrinhoService.ValorTotal:F2}";
 
         if (!string.IsNullOrWhiteSpace(_pedidoService.FormaPagamento))
@@ -47,7 +52,7 @@ public partial class RevisaoPedidoPage : ContentPage
 
             if (_pedidoService.QuantidadeParcelas.HasValue)
             {
-                pagamento += $" em {_pedidoService.QuantidadeParcelas}x";
+                pagamento += $" em {_pedidoService.QuantidadeParcelas.Value}x";
             }
 
             PagamentoLabel.Text = pagamento;
@@ -60,20 +65,48 @@ public partial class RevisaoPedidoPage : ContentPage
 
     private async void OnEnviarClicked(object sender, EventArgs e)
     {
+        if (_carrinhoService.Itens.Count == 0)
+        {
+            await DisplayAlertAsync(
+                "Carrinho vazio",
+                "Adicione produtos antes de enviar o pedido.",
+                "OK");
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_pedidoService.FormaPagamento))
+        {
+            await DisplayAlertAsync(
+                "Pagamento",
+                "Selecione uma forma de pagamento antes de enviar.",
+                "OK");
+
+            return;
+        }
+
         bool confirmar = await DisplayAlertAsync(
             "Enviar pedido",
-            "Deseja realmente enviar este pedido para validação?",
+            "Deseja realmente enviar este pedido para validação interna?",
             "Enviar",
             "Voltar");
 
         if (!confirmar)
-        {
             return;
-        }
+
+        _pedidoService.RegistrarPedido(
+            _clienteService.ClienteSelecionado,
+            _carrinhoService.ValorTotal);
+
+        _carrinhoService.Limpar();
+        _clienteService.Limpar();
+        _pedidoService.Limpar();
 
         await DisplayAlertAsync(
-            "Pedido pronto",
-            "O pedido foi preparado para envio e deverá ser validado pelo responsável interno.",
+            "Pedido registrado",
+            "Pedido registrado e encaminhado simbolicamente para validação interna. Você poderá consultá-lo em Vendas do dia.",
             "OK");
+
+        await Shell.Current.GoToAsync("//VendasDia");
     }
 }

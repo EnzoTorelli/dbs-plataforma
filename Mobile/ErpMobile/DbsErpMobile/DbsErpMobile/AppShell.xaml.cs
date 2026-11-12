@@ -21,5 +21,9 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(
             nameof(Views.PagamentoPage),
             typeof(Views.PagamentoPage));
+
+        Routing.RegisterRoute(
+            nameof(Views.RevisaoPedidoPage),
+            typeof(Views.RevisaoPedidoPage));
     }
 }
