@@ -1,9 +1,11 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="pt-br" data-fonte="2">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] — DBS</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -15,7 +17,7 @@
                     if (localStorage.getItem('acess_escuro') === 'true') html.setAttribute('data-tema', 'escuro');
                     if (localStorage.getItem('acess_contraste') === 'true') html.setAttribute('data-contraste', 'ativo');
                     html.setAttribute('data-fonte', localStorage.getItem('acess_fonte') || '2');
-                } catch (_) {}
+                } catch (_) { }
             })();
     </script>
 
@@ -27,17 +29,43 @@
 
 <body>
 
+    @{
+        var nomeUsuario = Context.Session.GetString("VendedorNome") ?? "Usuário";
+        var perfilUsuario = Context.Session.GetString("Perfil") ?? "";
+
+        var cargoUsuario = perfilUsuario switch
+        {
+            "Administrador" => "Administrador",
+            "Gerente" => "Gerente",
+            "VendedorInterno" => "Vendedor Interno",
+            "VendedorExterno" => "Vendedor Externo",
+            _ => "Usuário"
+        };
+
+        var partesNome = nomeUsuario.Trim().Split(
+            ' ',
+            StringSplitOptions.RemoveEmptyEntries);
+
+        var iniciais = partesNome.Length >= 2
+            ? $"{partesNome[0][0]}{partesNome[^1][0]}"
+            : partesNome.Length == 1
+                ? partesNome[0].Substring(0, 1)
+                : "U";
+    }
+
     @await Html.PartialAsync("_BarraAcessibilidade")
 
     <div class="container-geral">
 
         <div class="sidebar">
+
             <div class="sidebar-brand">
                 <img src="~/imagens/logo3.png" alt="DBS" class="sidebar-logo" />
                 <span class="sidebar-sistema">Sistema de Gestão</span>
             </div>
 
             <nav>
+
                 <a href="/Dashboard" class="@(ViewData["Pagina"]?.ToString() == "Dashboard" ? "ativo" : "")">
                     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
                         <rect x="1" y="1" width="6" height="6" rx="1" />
@@ -47,6 +75,7 @@
                     </svg>
                     Dashboard
                 </a>
+
                 <a href="/Clientes" class="@(ViewData["Pagina"]?.ToString() == "Clientes" ? "ativo" : "")">
                     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
                         <circle cx="8" cy="5" r="3" />
@@ -54,6 +83,7 @@
                     </svg>
                     Clientes
                 </a>
+
                 <a href="/Produtos" class="@(ViewData["Pagina"]?.ToString() == "Produtos" ? "ativo" : "")">
                     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
                         <path d="M2 4h12v10H2z" />
@@ -61,6 +91,7 @@
                     </svg>
                     Produtos
                 </a>
+
                 <a href="/Vendas" class="@(ViewData["Pagina"]?.ToString() == "Vendas" ? "ativo" : "")">
                     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
                         <path d="M1 12 L5 7 L9 9 L15 3" />
@@ -68,6 +99,7 @@
                     </svg>
                     Vendas
                 </a>
+
                 <a href="/Ordens" class="@(ViewData["Pagina"]?.ToString() == "Ordens" ? "ativo" : "")">
                     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
                         <rect x="1" y="3" width="14" height="11" rx="1" />
@@ -76,17 +108,32 @@
                     </svg>
                     Ordens
                 </a>
+
+                @if (perfilUsuario == "Administrador")
+                {
+                    <a href="/Vendedor/CadastrarExterno" class="@(ViewData["Pagina"]?.ToString() == "Vendedor" ? "ativo" : "")">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="6" cy="5" r="3" />
+                            <path d="M1 14c0-3 2-5 5-5s5 2 5 5" />
+                            <path d="M13 5v6M10 8h6" />
+                        </svg>
+                        Vendedores externos
+                    </a>
+                }
+
             </nav>
 
             <div class="sidebar-footer">
                 <div class="user-info">
-                    <div class="user-avatar">JD</div>
+                    <div class="user-avatar">@iniciais.ToUpperInvariant()</div>
+
                     <div>
-                        <div class="user-nome">Admin</div>
-                        <div class="user-cargo">Admin</div>
+                        <div class="user-nome">@nomeUsuario</div>
+                        <div class="user-cargo">@cargoUsuario</div>
                     </div>
                 </div>
             </div>
+
         </div>
 
         <div class="conteudo" id="conteudo-principal">
@@ -109,12 +156,11 @@
             <div class="vw-plugin-top-wrapper"></div>
         </div>
     </div>
+
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
     <script>
-        new window.VLibras.Widget('https://vlibras.gov.br/app');
+            new window.VLibras.Widget('https://vlibras.gov.br/app');
     </script>
-
-
 
 </body>
 </html>

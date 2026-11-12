@@ -1,3 +1,4 @@
+
 namespace DBS.Models
 {
     public class Pedido
@@ -10,18 +11,33 @@ namespace DBS.Models
         public decimal ValorTotal { get; set; }
         public decimal Valor { get; set; }
 
-        /// <summary>Produtos do pedido. Preenchido por PedidoRepository.CarregarItens().</summary>
+        // Dados do vendedor e pagamento
+        public int? IdVendedor { get; set; }
+        public string? FormaPagamento { get; set; }
+        public int? Parcelas { get; set; }
+        public string? CondicaoPagamento { get; set; }
+
+        /// <summary>
+        /// Produtos do pedido.
+        /// Preenchido por PedidoRepository.CarregarItens().
+        /// </summary>
         public List<ItemPedidoResumo> Itens { get; set; } = new();
 
         public int TotalUnidades => Itens.Sum(i => i.Quantidade);
 
-        /// <summary>Ex.: "2× RTX 3060, 1× Mouse Gamer REDRAGON +1"</summary>
         public string ResumoItens(int maxProdutos = 2)
         {
-            if (Itens.Count == 0) return "Sem itens registrados";
-            var partes = Itens.Take(maxProdutos).Select(i => $"{i.Quantidade}× {i.NomeProduto}");
+            if (Itens.Count == 0)
+                return "Sem itens registrados";
+
+            var partes = Itens
+                .Take(maxProdutos)
+                .Select(i => $"{i.Quantidade}× {i.NomeProduto}");
+
             var resto = Itens.Count - maxProdutos;
-            return string.Join(", ", partes) + (resto > 0 ? $" +{resto}" : "");
+
+            return string.Join(", ", partes) +
+                   (resto > 0 ? $" +{resto}" : "");
         }
     }
 }

@@ -1,29 +1,197 @@
 @model List<DBS.Models.Pedido>
+
 @{
     ViewData["Title"] = "Ordens";
     ViewData["Pagina"] = "Ordens";
-    ViewData["ColspanItens"] = 7; // nº de colunas da tabela (para a linha de itens)
+    ViewBag.ColspanItens = 7;
+
+    var podeEditarOrdens = ViewBag.PodeEditarOrdens == true;
+    var podeExcluirOrdens = ViewBag.PodeExcluirOrdens == true;
+
+    var clientes = ViewBag.Clientes as IEnumerable<DBS.Models.Cliente>
+        ?? Enumerable.Empty<DBS.Models.Cliente>();
+
+    var produtos = ViewBag.Produtos as IEnumerable<DBS.Models.Produto>
+        ?? Enumerable.Empty<DBS.Models.Produto>();
+
+    var opcoesJson = new System.Text.Json.JsonSerializerOptions
+    {
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+    };
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/ordens.css" />
     <link rel="stylesheet" href="~/css/pedido-itens.css" asp-append-version="true" />
+
+    <style>
+        /* TÍTULOS E RÓTULOS DO MODAL DE EDIÇÃO - BRANCO */
+
+        #modalEditar,
+        #modalEditar .editor-secao,
+        #modalEditar .editor-titulo,
+        #modalEditar .form-grupo,
+        #modalEditar .form-grupo label,
+        #modalEditar .editor-secao label,
+        #modalEditar .pagamento-editor label,
+        #modalEditar .total-editor span {
+            color: #ffffff !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+            #modalEditar .editor-secao > .editor-titulo,
+            #modalEditar label.editor-titulo {
+                display: block !important;
+                font-size: 15px !important;
+                font-weight: 700 !important;
+            }
+
+            #modalEditar .form-grupo > label,
+            #modalEditar .editor-secao .form-grupo label,
+            #modalEditar .pagamento-editor label {
+                display: block !important;
+                font-weight: 600 !important;
+            }
+
+            /* CAMPOS DE PREENCHIMENTO */
+
+            #modalEditar input,
+            #modalEditar select,
+            #modalOrdem input,
+            #modalOrdem select {
+                color: #0f172a !important;
+                background-color: #ffffff !important;
+                border-color: #cbd5e1;
+            }
+
+                #modalEditar input::placeholder,
+                #modalOrdem input::placeholder {
+                    color: #64748b !important;
+                    opacity: 1;
+                }
+
+                #modalEditar select option,
+                #modalOrdem select option {
+                    color: #0f172a !important;
+                    background: #ffffff !important;
+                }
+
+                #modalEditar input:focus,
+                #modalEditar select:focus,
+                #modalOrdem input:focus,
+                #modalOrdem select:focus {
+                    border-color: #0d9488 !important;
+                    outline: none;
+                    box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.15);
+                }
+
+            /* CLIENTE SELECIONADO */
+
+            #modalEditar .cliente-selecionado {
+                background: #f0fdfa;
+                border: 1px solid #99f6e4;
+                color: #0f172a !important;
+            }
+
+                #modalEditar .cliente-selecionado strong,
+                #modalEditar .sugestao-item strong {
+                    color: #0f766e !important;
+                    font-weight: 700;
+                }
+
+                #modalEditar .cliente-selecionado span,
+                #modalEditar .sugestao-item span {
+                    color: #334155 !important;
+                }
+
+            /* PRODUTOS */
+
+            #modalEditar .sugestao-item {
+                background: #ffffff;
+                color: #0f172a !important;
+            }
+
+                #modalEditar .sugestao-item:hover {
+                    background: #f0fdfa !important;
+                }
+
+            #modalEditar .sugestao-vazio {
+                color: #475569 !important;
+                background: #ffffff;
+            }
+
+            #modalEditar .item-nome,
+            #modalEditar .item-preco,
+            #modalEditar .item-subtotal,
+            #modalEditar .tabela-itens td {
+                color: #0f172a !important;
+            }
+
+            #modalEditar .itens-vazio {
+                color: #64748b !important;
+            }
+
+            #modalEditar .total-editor strong {
+                color: #0f766e !important;
+            }
+
+        /* PAGAMENTO */
+
+        .pagamento-editor {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+            .pagamento-editor .form-grupo {
+                margin-bottom: 0;
+            }
+
+            .pagamento-editor select,
+            .pagamento-editor input {
+                width: 100%;
+                min-height: 40px;
+            }
+
+        .pagamento-ajuda {
+            color: #ffffff !important;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        .pagamento-campo-oculto {
+            display: none !important;
+        }
+
+        @@media (max-width: 600px) {
+            .pagamento-editor {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 }
 
 <div class="page-wrap">
 
     <div class="page-header">
         <div>
-            <br>
+            <br />
             <h1>Ordens</h1>
             <span>Gerenciamento de pedidos</span>
-            <p>
+            <p></p>
         </div>
+
         <button class="btn-novo" onclick="abrirModal()">+ Nova Ordem</button>
     </div>
 
     <div class="barra-busca">
-        <input type="text" id="campoBusca" placeholder="Buscar pedido, cliente ou produto..." oninput="filtrarTabela()" />
+        <input type="text"
+               id="campoBusca"
+               placeholder="Buscar pedido, cliente ou produto..."
+               oninput="filtrarTabela()" />
+
         <select id="filtroStatus" onchange="filtrarTabela()">
             <option value="">Todos</option>
             <option value="pendente">Pendente</option>
@@ -45,54 +213,88 @@
                     <th>Ações</th>
                 </tr>
             </thead>
+
             <tbody>
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="7" style="text-align:center; color:#888;">Nenhuma ordem encontrada.</td>
+                        <td colspan="7" style="text-align:center; color:#888;">
+                            Nenhuma ordem encontrada.
+                        </td>
                     </tr>
                 }
+
                 @foreach (var ordem in Model)
                 {
                     <tr class="linha-pedido"
                         data-status="@((ordem.Status ?? "Pendente").ToLowerInvariant())"
                         data-itens="@(string.Join(" ", ordem.Itens.Select(i => i.NomeProduto)).ToLowerInvariant())">
+
                         <td>#@ordem.Id</td>
                         <td>@ordem.ClienteNome</td>
-                        <td class="itens-celula"><partial name="_ItensResumo" model="ordem" /></td>
-                        <td>@(ordem.DataPedido != DateTime.MinValue ? ordem.DataPedido.ToString("dd/MM/yyyy") : "—")</td>
+
+                        <td class="itens-celula">
+                            <partial name="_ItensResumo" model="ordem" />
+                        </td>
+
+                        <td>
+                            @(ordem.DataPedido != DateTime.MinValue
+                                ? ordem.DataPedido.ToString("dd/MM/yyyy")
+                                : "—")
+                        </td>
+
                         <td>R$ @ordem.ValorTotal.ToString("N2")</td>
+
                         <td>
                             <span class="status @(ordem.Status?.ToLower() ?? "pendente")">
                                 @(ordem.Status ?? "Pendente")
                             </span>
                         </td>
+
                         <td>
-                            <button class="btn-acao editar" onclick="abrirModalEditar(@ordem.Id)">Editar</button>
-                            <form method="post" asp-action="Excluir" asp-route-id="@ordem.Id" style="display:inline"
-                                  onsubmit="return confirm('Excluir ordem #@ordem.Id?')">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn-acao excluir">Excluir</button>
-                            </form>
+                            @if (podeEditarOrdens)
+                            {
+                                <button class="btn-acao editar"
+                                        onclick="abrirModalEditar(@ordem.Id)">
+                                    Editar
+                                </button>
+                            }
+
+                            @if (podeExcluirOrdens)
+                            {
+                                <form method="post"
+                                      asp-action="Excluir"
+                                      asp-route-id="@ordem.Id"
+                                      style="display:inline"
+                                      onsubmit="return confirm('Excluir ordem #@ordem.Id?')">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit" class="btn-acao excluir">
+                                        Excluir
+                                    </button>
+                                </form>
+                            }
                         </td>
                     </tr>
+
                     <partial name="_ItensDetalhe" model="ordem" />
                 }
             </tbody>
         </table>
     </div>
-
 </div>
 
-<!-- Modal de Cadastro -->
+<!-- MODAL DE CADASTRO -->
 <div class="modal-overlay" id="modalOrdem">
     <div class="modal">
+
         <div class="modal-header">
             <h2>Nova Ordem</h2>
             <button type="button" class="modal-fechar" onclick="fecharModal()">×</button>
         </div>
 
-        <form method="post" asp-action="Salvar">
+        <form method="post" asp-action="Salvar" id="formNovaOrdem">
             @Html.AntiForgeryToken()
 
             <div class="form-grupo">
@@ -103,6 +305,52 @@
             <div class="form-grupo">
                 <label>Valor (R$)</label>
                 <input type="number" name="Valor" placeholder="0,00" step="0.01" />
+            </div>
+
+            <div class="editor-secao">
+                <label class="editor-titulo">Pagamento</label>
+
+                <div class="pagamento-editor">
+
+                    <div class="form-grupo">
+                        <label>Forma de pagamento</label>
+                        <select name="FormaPagamento" id="novoFormaPagamento" required>
+                            <option value="">Selecione...</option>
+                            <option value="Dinheiro">Dinheiro</option>
+                            <option value="Pix">Pix</option>
+                            <option value="Cartão de crédito">Cartão de crédito</option>
+                            <option value="Faturado">Faturado</option>
+                        </select>
+                    </div>
+
+                    <div class="form-grupo pagamento-campo-oculto" id="novoGrupoParcelas">
+                        <label>Parcelamento</label>
+                        <select name="Parcelas" id="novoParcelas" disabled>
+                            <option value="">Selecione...</option>
+                            <option value="1">1x</option>
+                            <option value="2">2x</option>
+                            <option value="3">3x</option>
+                            <option value="4">4x</option>
+                            <option value="5">5x</option>
+                            <option value="6">6x</option>
+                        </select>
+                    </div>
+
+                    <div class="form-grupo pagamento-campo-oculto" id="novoGrupoCondicao">
+                        <label>Condição de faturamento</label>
+                        <input type="text"
+                               name="CondicaoPagamento"
+                               id="novoCondicaoPagamento"
+                               placeholder="Ex.: 30/60/90"
+                               maxlength="100"
+                               disabled />
+
+                        <span class="pagamento-ajuda">
+                            Informe os dias ou vencimentos combinados.
+                        </span>
+                    </div>
+
+                </div>
             </div>
 
             <div class="form-grupo">
@@ -122,81 +370,814 @@
     </div>
 </div>
 
-<!-- Modal de Edição -->
-<div class="modal-overlay" id="modalEditar">
-    <div class="modal">
-        <div class="modal-header">
-            <h2>Editar Ordem</h2>
-            <button type="button" class="modal-fechar" onclick="fecharModalEditar()">×</button>
+@if (podeEditarOrdens)
+{
+    <!-- MODAL DE EDIÇÃO -->
+    <div class="modal-overlay" id="modalEditar">
+
+        <div class="modal modal-grande">
+
+            <div class="modal-header">
+                <h2>Editar Ordem</h2>
+                <button type="button" class="modal-fechar" onclick="fecharModalEditar()">×</button>
+            </div>
+
+            <form method="post" asp-action="Atualizar" id="formEditarOrdem">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" name="Id" id="editarId" />
+                <input type="hidden" name="IdCliente" id="editarIdCliente" />
+
+                <!-- CLIENTE -->
+                <div class="editor-secao">
+
+                    <label class="editor-titulo">Cliente</label>
+
+                    <div id="clienteSelecionado" class="cliente-selecionado" style="display:none;">
+                        <div>
+                            <strong id="clienteNome"></strong>
+                            <span id="clienteDocumento"></span>
+                        </div>
+
+                        <button type="button" class="btn-trocar-cliente" onclick="trocarCliente()">
+                            Trocar cliente
+                        </button>
+                    </div>
+
+                    <div class="campo-pesquisa" id="areaBuscaCliente">
+                        <input type="text"
+                               id="buscaCliente"
+                               placeholder="Pesquisar cliente pelo nome..."
+                               autocomplete="off" />
+
+                        <div class="lista-sugestoes" id="sugestoesClientes"></div>
+                    </div>
+
+                </div>
+
+                <!-- PRODUTOS -->
+                <div class="editor-secao">
+
+                    <label class="editor-titulo">Produtos</label>
+
+                    <div class="editor-produtos">
+
+                        <div class="produto-busca">
+                            <div class="campo-pesquisa">
+
+                                <input type="text"
+                                       id="buscaProduto"
+                                       placeholder="Pesquisar produto pelo nome..."
+                                       autocomplete="off" />
+
+                                <div class="lista-sugestoes" id="sugestoesProdutos"></div>
+                            </div>
+                        </div>
+
+                        <div style="overflow-x:auto;">
+                            <table class="tabela-itens">
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Preço</th>
+                                        <th>Quantidade</th>
+                                        <th>Subtotal</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="listaItens">
+                                    <tr>
+                                        <td colspan="5" class="itens-vazio">
+                                            Nenhum produto adicionado.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="total-editor">
+                            <span>Valor total da ordem</span>
+                            <strong id="valorTotalEditor">R$ 0,00</strong>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- PAGAMENTO -->
+                <div class="editor-secao">
+
+                    <label class="editor-titulo">Pagamento</label>
+
+                    <div class="pagamento-editor">
+
+                        <div class="form-grupo">
+                            <label>Forma de pagamento</label>
+                            <select name="FormaPagamento" id="editarFormaPagamento" required>
+                                <option value="">Selecione...</option>
+                                <option value="Dinheiro">Dinheiro</option>
+                                <option value="Pix">Pix</option>
+                                <option value="Cartão de crédito">Cartão de crédito</option>
+                                <option value="Faturado">Faturado</option>
+                            </select>
+                        </div>
+
+                        <div class="form-grupo pagamento-campo-oculto" id="editarGrupoParcelas">
+                            <label>Parcelamento</label>
+                            <select name="Parcelas" id="editarParcelas" disabled>
+                                <option value="">Selecione...</option>
+                                <option value="1">1x</option>
+                                <option value="2">2x</option>
+                                <option value="3">3x</option>
+                                <option value="4">4x</option>
+                                <option value="5">5x</option>
+                                <option value="6">6x</option>
+                            </select>
+                        </div>
+
+                        <div class="form-grupo pagamento-campo-oculto" id="editarGrupoCondicao">
+                            <label>Condição de faturamento</label>
+                            <input type="text"
+                                   name="CondicaoPagamento"
+                                   id="editarCondicaoPagamento"
+                                   placeholder="Ex.: 30/60/90"
+                                   maxlength="100"
+                                   disabled />
+
+                            <span class="pagamento-ajuda">
+                                Informe os dias ou vencimentos combinados.
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- STATUS -->
+                <div class="editor-secao">
+                    <div class="form-grupo">
+                        <label>Status da ordem</label>
+                        <select name="Status" id="editarStatus">
+                            <option value="Pendente">Pendente</option>
+                            <option value="Pago">Pago</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancelar" onclick="fecharModalEditar()">
+                        Cancelar
+                    </button>
+
+                    <button type="submit" class="btn-salvar">
+                        Salvar Alterações
+                    </button>
+                </div>
+
+            </form>
         </div>
-
-        <form method="post" asp-action="Atualizar">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="Id" id="editarId" />
-
-            <div class="form-grupo">
-                <label>ID do Cliente</label>
-                <input type="number" name="IdCliente" id="editarIdCliente" />
-            </div>
-
-            <div class="form-grupo">
-                <label>Valor (R$)</label>
-                <input type="number" name="Valor" id="editarValor" step="0.01" />
-            </div>
-
-            <div class="form-grupo">
-                <label>Status</label>
-                <select name="Status" id="editarStatus">
-                    <option value="Pendente">Pendente</option>
-                    <option value="Pago">Pago</option>
-                    <option value="Cancelado">Cancelado</option>
-                </select>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn-cancelar" onclick="fecharModalEditar()">Cancelar</button>
-                <button type="submit" class="btn-salvar">Salvar Alterações</button>
-            </div>
-        </form>
     </div>
-</div>
+}
 
 @section Scripts {
+
     <script src="~/js/pedido-itens.js" asp-append-version="true"></script>
+
     <script>
+        const clientes = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(clientes, opcoesJson));
+        const produtos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(produtos, opcoesJson));
+
+        let itensOrdem = [];
+
+        function obter(objeto, ...nomes) {
+            if (!objeto) return '';
+
+            for (const nome of nomes) {
+                if (objeto[nome] !== undefined && objeto[nome] !== null) {
+                    return objeto[nome];
+                }
+            }
+
+            return '';
+        }
+
+        function texto(valor) {
+            return String(valor ?? '').toLocaleLowerCase('pt-BR');
+        }
+
+        function numero(valor) {
+            if (typeof valor === 'number') return valor;
+            if (valor === null || valor === undefined || valor === '') return 0;
+
+            const convertido = Number(String(valor).replace(',', '.'));
+            return Number.isFinite(convertido) ? convertido : 0;
+        }
+
+        function idCliente(cliente) {
+            return obter(cliente, 'id', 'Id');
+        }
+
+        function idProduto(produto) {
+            return obter(produto, 'id', 'Id');
+        }
+
+        function nomeCliente(cliente) {
+            return obter(
+                cliente,
+                'nomeFantasia', 'NomeFantasia',
+                'razaoSocial', 'RazaoSocial',
+                'nome', 'Nome'
+            );
+        }
+
+        function documentoCliente(cliente) {
+            return obter(cliente, 'cnpj', 'Cnpj', 'cpf', 'Cpf');
+        }
+
+        function nomeProduto(produto) {
+            return obter(
+                produto,
+                'nome', 'Nome',
+                'nomeProduto', 'NomeProduto',
+                'descricao', 'Descricao'
+            );
+        }
+
+        function precoProduto(produto) {
+            return numero(obter(produto, 'preco', 'Preco', 'valor', 'Valor'));
+        }
+
+        function estoqueProduto(produto) {
+            return numero(obter(
+                produto,
+                'estoque', 'Estoque',
+                'quantidadeEstoque', 'QuantidadeEstoque'
+            ));
+        }
+
+        // CONFIGURAÇÃO DE PAGAMENTO
+
+        function configurarPagamento(prefixo) {
+
+            const forma = document.getElementById(prefixo + 'FormaPagamento');
+            const grupoParcelas = document.getElementById(prefixo + 'GrupoParcelas');
+            const parcelas = document.getElementById(prefixo + 'Parcelas');
+            const grupoCondicao = document.getElementById(prefixo + 'GrupoCondicao');
+            const condicao = document.getElementById(prefixo + 'CondicaoPagamento');
+
+            if (!forma) return;
+
+            function atualizarCampos() {
+
+                const cartao = forma.value === 'Cartão de crédito';
+                const faturado = forma.value === 'Faturado';
+
+                grupoParcelas.classList.toggle('pagamento-campo-oculto', !cartao);
+                parcelas.disabled = !cartao;
+                parcelas.required = cartao;
+
+                grupoCondicao.classList.toggle('pagamento-campo-oculto', !faturado);
+                condicao.disabled = !faturado;
+                condicao.required = faturado;
+
+                if (!cartao) parcelas.value = '';
+                if (!faturado) condicao.value = '';
+            }
+
+            forma.addEventListener('change', atualizarCampos);
+            atualizarCampos();
+        }
+
+        configurarPagamento('novo');
+        configurarPagamento('editar');
+
+        // MODAL DE CADASTRO
+
         function abrirModal() {
             document.getElementById('modalOrdem').classList.add('aberto');
         }
+
         function fecharModal() {
             document.getElementById('modalOrdem').classList.remove('aberto');
         }
+
         document.getElementById('modalOrdem').addEventListener('click', function (e) {
             if (e.target === this) fecharModal();
         });
 
-        function abrirModalEditar(id) {
-            fetch(`/Ordens/Editar/${id}`)
-                .then(r => r.json())
-                .then(o => {
-                    document.getElementById('editarId').value        = o.id;
-                    document.getElementById('editarIdCliente').value = o.idCliente ?? '';
-                    document.getElementById('editarValor').value     = o.valorTotal;
-                    document.getElementById('editarStatus').value    = o.status ?? 'Pendente';
-                    document.getElementById('modalEditar').classList.add('aberto');
-                });
-        }
+        // MODAL DE EDIÇÃO
+
         function fecharModalEditar() {
             document.getElementById('modalEditar').classList.remove('aberto');
         }
+
         document.getElementById('modalEditar').addEventListener('click', function (e) {
             if (e.target === this) fecharModalEditar();
         });
 
-        // Busca por nº, cliente, data, valor ou produto + filtro de status (pedido-itens.js)
-        function filtrarTabela() {
-            filtrarPedidos('tabelaOrdens',
-                document.getElementById('campoBusca').value,
-                document.getElementById('filtroStatus').value);
+        // PESQUISA DE CLIENTES
+
+        const buscaCliente = document.getElementById('buscaCliente');
+
+        buscaCliente.addEventListener('input', function () {
+
+            const termo = texto(this.value.trim());
+            const lista = document.getElementById('sugestoesClientes');
+
+            lista.innerHTML = '';
+
+            if (!termo) {
+                lista.classList.remove('aberta');
+                return;
+            }
+
+            const encontrados = clientes.filter(c => {
+
+                const nome = texto(obter(c, 'nome', 'Nome'));
+                const razao = texto(obter(c, 'razaoSocial', 'RazaoSocial'));
+                const fantasia = texto(obter(c, 'nomeFantasia', 'NomeFantasia'));
+                const cnpj = texto(documentoCliente(c));
+
+                return nome.includes(termo) ||
+                    razao.includes(termo) ||
+                    fantasia.includes(termo) ||
+                    cnpj.includes(termo);
+            });
+
+            if (encontrados.length === 0) {
+                const vazio = document.createElement('div');
+                vazio.className = 'sugestao-vazio';
+                vazio.textContent = 'Nenhum cliente encontrado.';
+                lista.appendChild(vazio);
+                lista.classList.add('aberta');
+                return;
+            }
+
+            encontrados.forEach(c => {
+
+                const botao = document.createElement('button');
+                botao.type = 'button';
+                botao.className = 'sugestao-item';
+
+                const titulo = document.createElement('strong');
+                titulo.textContent = nomeCliente(c) || 'Cliente sem nome';
+
+                const detalhe = document.createElement('span');
+                detalhe.textContent =
+                    documentoCliente(c) ||
+                    obter(c, 'razaoSocial', 'RazaoSocial') ||
+                    '';
+
+                botao.appendChild(titulo);
+                botao.appendChild(detalhe);
+
+                botao.addEventListener('click', () => selecionarCliente(c));
+                lista.appendChild(botao);
+            });
+
+            lista.classList.add('aberta');
+        });
+
+        function selecionarCliente(cliente) {
+
+            document.getElementById('editarIdCliente').value = idCliente(cliente);
+
+            document.getElementById('clienteNome').textContent =
+                nomeCliente(cliente) || 'Cliente sem nome';
+
+            document.getElementById('clienteDocumento').textContent =
+                documentoCliente(cliente);
+
+            document.getElementById('clienteSelecionado').style.display = 'flex';
+            document.getElementById('areaBuscaCliente').style.display = 'none';
+
+            document.getElementById('sugestoesClientes').classList.remove('aberta');
         }
+
+        function trocarCliente() {
+
+            document.getElementById('editarIdCliente').value = '';
+            document.getElementById('clienteSelecionado').style.display = 'none';
+            document.getElementById('areaBuscaCliente').style.display = 'block';
+            document.getElementById('buscaCliente').value = '';
+            document.getElementById('buscaCliente').focus();
+        }
+
+        // PESQUISA DE PRODUTOS
+
+        const buscaProduto = document.getElementById('buscaProduto');
+
+        buscaProduto.addEventListener('input', function () {
+
+            const termo = texto(this.value.trim());
+            const lista = document.getElementById('sugestoesProdutos');
+
+            lista.innerHTML = '';
+
+            if (!termo) {
+                lista.classList.remove('aberta');
+                return;
+            }
+
+            const encontrados = produtos.filter(p =>
+                texto(nomeProduto(p)).includes(termo)
+            );
+
+            if (encontrados.length === 0) {
+
+                const vazio = document.createElement('div');
+                vazio.className = 'sugestao-vazio';
+                vazio.textContent = 'Nenhum produto encontrado.';
+
+                lista.appendChild(vazio);
+                lista.classList.add('aberta');
+                return;
+            }
+
+            encontrados.forEach(p => {
+
+                const botao = document.createElement('button');
+                botao.type = 'button';
+                botao.className = 'sugestao-item';
+
+                const titulo = document.createElement('strong');
+                titulo.textContent = nomeProduto(p) || 'Produto sem nome';
+
+                const detalhe = document.createElement('span');
+
+                detalhe.textContent =
+                    'R$ ' + precoProduto(p).toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }) + ' | Estoque: ' + estoqueProduto(p);
+
+                botao.appendChild(titulo);
+                botao.appendChild(detalhe);
+
+                botao.addEventListener('click', () => adicionarProduto(p));
+                lista.appendChild(botao);
+            });
+
+            lista.classList.add('aberta');
+        });
+
+        // ADICIONAR PRODUTO
+
+        function adicionarProduto(produto) {
+
+            const id = idProduto(produto);
+            const estoque = estoqueProduto(produto);
+
+            if (estoque <= 0) {
+                alert('Este produto está sem estoque.');
+                return;
+            }
+
+            const existente = itensOrdem.find(i =>
+                String(i.idProduto) === String(id)
+            );
+
+            if (existente) {
+
+                if (existente.quantidade + 1 > existente.estoque) {
+                    alert('Quantidade maior que o estoque disponível.');
+                    return;
+                }
+
+                existente.quantidade++;
+
+            } else {
+
+                itensOrdem.push({
+                    idProduto: id,
+                    nomeProduto: nomeProduto(produto),
+                    precoUnitario: precoProduto(produto),
+                    quantidade: 1,
+                    estoque: estoque
+                });
+            }
+
+            buscaProduto.value = '';
+
+            document.getElementById('sugestoesProdutos')
+                .classList.remove('aberta');
+
+            renderizarItens();
+        }
+
+        // ALTERAR QUANTIDADE
+
+        function alterarQuantidade(id, quantidade) {
+
+            const item = itensOrdem.find(i =>
+                String(i.idProduto) === String(id)
+            );
+
+            if (!item) return;
+
+            quantidade = parseInt(quantidade);
+
+            if (isNaN(quantidade) || quantidade < 1) {
+                quantidade = 1;
+            }
+
+            if (quantidade > item.estoque) {
+                alert('Quantidade maior que o estoque disponível.');
+                quantidade = item.estoque;
+            }
+
+            item.quantidade = quantidade;
+            renderizarItens();
+        }
+
+        // REMOVER PRODUTO
+
+        function removerProduto(id) {
+
+            itensOrdem = itensOrdem.filter(i =>
+                String(i.idProduto) !== String(id)
+            );
+
+            renderizarItens();
+        }
+
+        // RENDERIZAR ITENS
+
+        function renderizarItens() {
+
+            const lista = document.getElementById('listaItens');
+            lista.innerHTML = '';
+
+            if (itensOrdem.length === 0) {
+
+                lista.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="itens-vazio">
+                                    Nenhum produto adicionado.
+                                </td>
+                            </tr>`;
+
+                atualizarTotal();
+                return;
+            }
+
+            itensOrdem.forEach(item => {
+
+                const subtotal = item.precoUnitario * item.quantidade;
+                const tr = document.createElement('tr');
+
+                const tdNome = document.createElement('td');
+                tdNome.className = 'item-nome';
+                tdNome.textContent = item.nomeProduto;
+
+                const tdPreco = document.createElement('td');
+                tdPreco.className = 'item-preco';
+                tdPreco.textContent = formatarMoeda(item.precoUnitario);
+
+                const tdQuantidade = document.createElement('td');
+
+                const controle = document.createElement('div');
+                controle.className = 'quantidade-controle';
+
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.min = '1';
+                input.max = item.estoque;
+                input.value = item.quantidade;
+
+                input.addEventListener('change', () =>
+                    alterarQuantidade(item.idProduto, input.value)
+                );
+
+                controle.appendChild(input);
+                tdQuantidade.appendChild(controle);
+
+                const tdSubtotal = document.createElement('td');
+                tdSubtotal.className = 'item-subtotal';
+                tdSubtotal.textContent = formatarMoeda(subtotal);
+
+                const tdRemover = document.createElement('td');
+
+                const remover = document.createElement('button');
+                remover.type = 'button';
+                remover.className = 'btn-remover-item';
+                remover.textContent = '×';
+                remover.title = 'Remover produto';
+
+                remover.addEventListener('click', () =>
+                    removerProduto(item.idProduto)
+                );
+
+                tdRemover.appendChild(remover);
+
+                tr.appendChild(tdNome);
+                tr.appendChild(tdPreco);
+                tr.appendChild(tdQuantidade);
+                tr.appendChild(tdSubtotal);
+                tr.appendChild(tdRemover);
+
+                lista.appendChild(tr);
+            });
+
+            atualizarTotal();
+        }
+
+        // TOTAL
+
+        function atualizarTotal() {
+
+            const total = itensOrdem.reduce(
+                (soma, item) => soma + item.precoUnitario * item.quantidade,
+                0
+            );
+
+            document.getElementById('valorTotalEditor').textContent =
+                formatarMoeda(total);
+        }
+
+        function formatarMoeda(valor) {
+
+            return Number(valor).toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+        }
+
+        // ABRIR E CARREGAR ORDEM
+
+        async function abrirModalEditar(id) {
+
+            try {
+
+                const resposta = await fetch(`/Ordens/Editar/${id}`);
+
+                if (!resposta.ok) {
+                    throw new Error('Não foi possível carregar a ordem.');
+                }
+
+                const ordem = await resposta.json();
+
+                document.getElementById('editarId').value = ordem.id;
+
+                document.getElementById('editarStatus').value =
+                    ordem.status || 'Pendente';
+
+                document.getElementById('editarFormaPagamento').value =
+                    ordem.formaPagamento || '';
+
+                document.getElementById('editarParcelas').value =
+                    ordem.parcelas || '';
+
+                document.getElementById('editarCondicaoPagamento').value =
+                    ordem.condicaoPagamento || '';
+
+                document.getElementById('editarFormaPagamento')
+                    .dispatchEvent(new Event('change'));
+
+                itensOrdem = [];
+
+                const idDaOrdem = ordem.idCliente;
+
+                if (idDaOrdem) {
+
+                    const cliente = clientes.find(c =>
+                        String(idCliente(c)) === String(idDaOrdem)
+                    );
+
+                    if (cliente) {
+                        selecionarCliente(cliente);
+                    } else {
+                        document.getElementById('editarIdCliente').value = idDaOrdem;
+                        document.getElementById('clienteSelecionado').style.display = 'none';
+                        document.getElementById('areaBuscaCliente').style.display = 'block';
+                    }
+
+                } else {
+                    document.getElementById('editarIdCliente').value = '';
+                    document.getElementById('clienteSelecionado').style.display = 'none';
+                    document.getElementById('areaBuscaCliente').style.display = 'block';
+                }
+
+                if (ordem.itens && ordem.itens.length > 0) {
+
+                    ordem.itens.forEach(item => {
+
+                        const produto = produtos.find(p =>
+                            String(idProduto(p)) === String(item.idProduto)
+                        );
+
+                        const quantidade = Number(item.quantidade);
+
+                        itensOrdem.push({
+
+                            idProduto: item.idProduto,
+                            nomeProduto: item.nomeProduto,
+
+                            precoUnitario: produto
+                                ? precoProduto(produto)
+                                : Number(item.precoUnitario),
+
+                            quantidade: quantidade,
+
+                            estoque: produto
+                                ? Math.max(estoqueProduto(produto), quantidade)
+                                : quantidade
+                        });
+
+                    });
+                }
+
+                renderizarItens();
+
+                document.getElementById('modalEditar')
+                    .classList.add('aberto');
+
+            }
+            catch (erro) {
+                alert(erro.message);
+            }
+        }
+
+        // VALIDAR E ENVIAR EDIÇÃO
+
+        document.getElementById('formEditarOrdem')
+            .addEventListener('submit', function (e) {
+
+                const clienteId =
+                    document.getElementById('editarIdCliente').value;
+
+                const formaPagamento =
+                    document.getElementById('editarFormaPagamento').value;
+
+                const parcelas =
+                    document.getElementById('editarParcelas').value;
+
+                const condicao =
+                    document.getElementById('editarCondicaoPagamento').value.trim();
+
+                if (!clienteId) {
+                    e.preventDefault();
+                    alert('Selecione um cliente.');
+                    return;
+                }
+
+                if (itensOrdem.length === 0) {
+                    e.preventDefault();
+                    alert('Adicione pelo menos um produto.');
+                    return;
+                }
+
+                if (!formaPagamento) {
+                    e.preventDefault();
+                    alert('Selecione uma forma de pagamento.');
+                    return;
+                }
+
+                if (formaPagamento === 'Cartão de crédito' && !parcelas) {
+                    e.preventDefault();
+                    alert('Selecione a quantidade de parcelas.');
+                    return;
+                }
+
+                if (formaPagamento === 'Faturado' && !condicao) {
+                    e.preventDefault();
+                    alert('Informe a condição de pagamento faturado.');
+                    return;
+                }
+
+                this.querySelectorAll('.item-form-hidden')
+                    .forEach(campo => campo.remove());
+
+                itensOrdem.forEach((item, index) => {
+
+                    const idProdutoInput = document.createElement('input');
+                    idProdutoInput.type = 'hidden';
+                    idProdutoInput.name = `Itens[${index}].IdProduto`;
+                    idProdutoInput.value = item.idProduto;
+                    idProdutoInput.className = 'item-form-hidden';
+
+                    const quantidadeInput = document.createElement('input');
+                    quantidadeInput.type = 'hidden';
+                    quantidadeInput.name = `Itens[${index}].Quantidade`;
+                    quantidadeInput.value = item.quantidade;
+                    quantidadeInput.className = 'item-form-hidden';
+
+                    this.appendChild(idProdutoInput);
+                    this.appendChild(quantidadeInput);
+                });
+            });
+
+        // FILTROS DA TABELA
+
+        function filtrarTabela() {
+
+            filtrarPedidos(
+                'tabelaOrdens',
+                document.getElementById('campoBusca').value,
+                document.getElementById('filtroStatus').value
+            );
+        }
+
     </script>
 }

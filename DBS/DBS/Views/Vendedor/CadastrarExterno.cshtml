@@ -1,0 +1,258 @@
+﻿@using DBS.Models
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Vendedores";
+    ViewData["Pagina"] = "Vendedor";
+
+    var vendedores = ViewBag.Vendedores as List<Vendedor>
+                     ?? new List<Vendedor>();
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/produtos.css" />
+}
+
+<div class="page-wrap">
+
+    <div class="page-header">
+        <div>
+            <h1>Vendedores</h1>
+            <span>Gerencie os acessos dos vendedores ao DBS ERP</span>
+        </div>
+    </div>
+
+    @if (TempData["Sucesso"] != null)
+    {
+        <div style="padding:14px 18px; background:var(--cor-sucesso-bg); color:var(--cor-sucesso); border-radius:8px; font-size:14px;">
+            @TempData["Sucesso"]
+        </div>
+    }
+
+    @if (ViewBag.Erro != null)
+    {
+        <div style="padding:14px 18px; background:var(--cor-erro-bg); color:var(--cor-erro); border-radius:8px; font-size:14px;">
+            @ViewBag.Erro
+        </div>
+    }
+
+    <div class="painel">
+
+        <div style="margin-bottom:22px;">
+            <h3 style="font-size:16px; color:var(--cor-texto); margin:0 0 6px 0;">
+                Cadastrar novo vendedor
+            </h3>
+
+            <p style="font-size:13px; color:var(--cor-texto-suave); margin:0;">
+                Preencha os dados para criar um novo acesso ao sistema.
+            </p>
+        </div>
+
+        <form method="post" asp-controller="Vendedor" asp-action="CadastrarExterno">
+
+            @Html.AntiForgeryToken()
+
+            <div class="form-linha">
+
+                <div class="form-grupo">
+                    <label>Nome completo *</label>
+                    <input type="text"
+                           name="nome"
+                           placeholder="Digite o nome completo"
+                           required />
+                </div>
+
+                <div class="form-grupo">
+                    <label>Data de nascimento</label>
+                    <input type="date"
+                           name="dataNascimento" />
+                </div>
+
+            </div>
+
+            <div class="form-linha">
+
+                <div class="form-grupo">
+                    <label>E-mail de acesso *</label>
+                    <input type="email"
+                           name="email"
+                           placeholder="vendedor@empresa.com"
+                           required />
+                </div>
+
+                <div class="form-grupo">
+                    <label>Tipo de vendedor *</label>
+                    <select name="perfil" required>
+                        <option value="">Selecione o perfil</option>
+                        <option value="VendedorInterno">Vendedor Interno</option>
+                        <option value="VendedorExterno">Vendedor Externo</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="form-linha">
+
+                <div class="form-grupo">
+                    <label>Senha inicial *</label>
+                    <input type="password"
+                           name="senha"
+                           placeholder="Mínimo de 6 caracteres"
+                           minlength="6"
+                           required />
+                </div>
+
+                <div class="form-grupo">
+                    <label>Confirmar senha *</label>
+                    <input type="password"
+                           name="confirmarSenha"
+                           placeholder="Digite a senha novamente"
+                           minlength="6"
+                           required />
+                </div>
+
+            </div>
+
+            <div class="form-grupo">
+                <label>Descrição / Observações</label>
+                <textarea name="descricao"
+                          rows="3"
+                          placeholder="Informações adicionais sobre o vendedor"></textarea>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; margin-top:20px;">
+                <button type="submit" class="btn-salvar">
+                    Cadastrar vendedor
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+    <div class="painel">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <div>
+                <h3 style="font-size:16px; color:var(--cor-texto); margin:0 0 5px 0;">
+                    Vendedores cadastrados
+                </h3>
+
+                <p style="font-size:13px; color:var(--cor-texto-suave); margin:0;">
+                    Consulte e gerencie os acessos ao sistema.
+                </p>
+            </div>
+
+            <span style="font-size:13px; color:var(--cor-texto-suave);">
+                Total: @vendedores.Count
+            </span>
+        </div>
+
+        @if (vendedores.Count == 0)
+        {
+            <div style="padding:35px 15px; text-align:center; color:var(--cor-texto-suave); font-size:14px;">
+                Nenhum vendedor cadastrado.
+            </div>
+        }
+        else
+        {
+            <div style="overflow-x:auto;">
+                <table class="tabela">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>E-mail</th>
+                            <th>Perfil</th>
+                            <th>Nascimento</th>
+                            <th>Descrição</th>
+                            <th>Status</th>
+                            <th style="text-align:right;">Ação</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var vendedor in vendedores)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@vendedor.Nome</strong>
+                                </td>
+
+                                <td>@vendedor.Email</td>
+
+                                <td>
+                                    @(vendedor.Perfil == "VendedorInterno"
+                                        ? "Vendedor Interno"
+                                        : "Vendedor Externo")
+                                </td>
+
+                                <td>
+                                    @(vendedor.DataNascimento?.ToString("dd/MM/yyyy") ?? "-")
+                                </td>
+
+                                <td>
+                                    @(string.IsNullOrWhiteSpace(vendedor.Descricao)
+                                        ? "-"
+                                        : vendedor.Descricao)
+                                </td>
+
+                                <td>
+                                    @if (vendedor.Ativo)
+                                    {
+                                        <span style="color:var(--cor-sucesso); font-weight:600;">
+                                            Ativo
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color:var(--cor-erro); font-weight:600;">
+                                            Inativo
+                                        </span>
+                                    }
+                                </td>
+
+                                <td style="text-align:right;">
+                                    <form method="post"
+                                          asp-controller="Vendedor"
+                                          asp-action="AlterarStatus"
+                                          style="display:inline;">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="id"
+                                               value="@vendedor.Id" />
+
+                                        <input type="hidden"
+                                               name="ativo"
+                                               value="@(!vendedor.Ativo)" />
+
+                                        @if (vendedor.Ativo)
+                                        {
+                                            <button type="submit"
+                                                    class="btn-acao"
+                                                    onclick="return confirm('Deseja desativar este vendedor?');">
+                                                Desativar
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit"
+                                                    class="btn-acao"
+                                                    onclick="return confirm('Deseja ativar este vendedor?');">
+                                                Ativar
+                                            </button>
+                                        }
+
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+    </div>
+
+</div>
