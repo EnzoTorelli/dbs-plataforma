@@ -1,3 +1,4 @@
+
 using DBS.Models;
 using Npgsql;
 
@@ -15,16 +16,25 @@ namespace DBS.Repositories
         public List<Produto> GetAll()
         {
             var produtos = new List<Produto>();
+
             using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
 
             var cmd = new NpgsqlCommand(@"
-                SELECT p.id, p.nome, p.descricao, p.preco, p.estoque, p.id_categoria, c.nome AS categoria_nome
+                SELECT
+                    p.id,
+                    p.nome,
+                    p.descricao,
+                    p.preco,
+                    p.estoque,
+                    p.id_categoria,
+                    c.nome AS categoria_nome
                 FROM produto p
                 LEFT JOIN categoria c ON c.id = p.id_categoria
-                ORDER BY id ASC", conn);
+                ORDER BY p.id ASC", conn);
 
             using var reader = cmd.ExecuteReader();
+
             while (reader.Read())
             {
                 produtos.Add(new Produto
@@ -38,6 +48,7 @@ namespace DBS.Repositories
                     CategoriaNome = reader.IsDBNull(reader.GetOrdinal("categoria_nome")) ? null : reader.GetString(reader.GetOrdinal("categoria_nome"))
                 });
             }
+
             return produtos;
         }
 
@@ -45,7 +56,10 @@ namespace DBS.Repositories
         {
             using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
-            var cmd = new NpgsqlCommand("SELECT COALESCE(SUM(estoque), 0) FROM produto", conn);
+
+            var cmd = new NpgsqlCommand(
+                "SELECT COALESCE(SUM(estoque), 0) FROM produto", conn);
+
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
 
@@ -53,14 +67,19 @@ namespace DBS.Repositories
         {
             using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
+
             var cmd = new NpgsqlCommand(
-                "INSERT INTO produto (nome, descricao, preco, estoque, id_categoria) VALUES (@nome, @descricao, @preco, @estoque, @idCategoria)",
+                @"INSERT INTO produto
+                (nome, descricao, preco, estoque, id_categoria)
+                VALUES (@nome, @descricao, @preco, @estoque, @idCategoria)",
                 conn);
+
             cmd.Parameters.AddWithValue("@nome", produto.Nome);
             cmd.Parameters.AddWithValue("@descricao", (object?)produto.Descricao ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@preco", produto.Preco);
             cmd.Parameters.AddWithValue("@estoque", produto.Estoque);
             cmd.Parameters.AddWithValue("@idCategoria", (object?)produto.IdCategoria ?? DBNull.Value);
+
             cmd.ExecuteNonQuery();
         }
 
@@ -68,7 +87,10 @@ namespace DBS.Repositories
         {
             using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
-            var cmd = new NpgsqlCommand("DELETE FROM produto WHERE id = @id", conn);
+
+            var cmd = new NpgsqlCommand(
+                "DELETE FROM produto WHERE id = @id", conn);
+
             cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
         }
@@ -77,13 +99,24 @@ namespace DBS.Repositories
         {
             using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
+
             var cmd = new NpgsqlCommand(@"
-        SELECT p.id, p.nome, p.descricao, p.preco, p.estoque, p.id_categoria, c.nome AS categoria_nome
-        FROM produto p
-        LEFT JOIN categoria c ON c.id = p.id_categoria
-        WHERE p.id = @id", conn);
+                SELECT
+                    p.id,
+                    p.nome,
+                    p.descricao,
+                    p.preco,
+                    p.estoque,
+                    p.id_categoria,
+                    c.nome AS categoria_nome
+                FROM produto p
+                LEFT JOIN categoria c ON c.id = p.id_categoria
+                WHERE p.id = @id", conn);
+
             cmd.Parameters.AddWithValue("@id", id);
+
             using var reader = cmd.ExecuteReader();
+
             if (reader.Read())
             {
                 return new Produto
@@ -97,6 +130,7 @@ namespace DBS.Repositories
                     CategoriaNome = reader.IsDBNull(reader.GetOrdinal("categoria_nome")) ? null : reader.GetString(reader.GetOrdinal("categoria_nome"))
                 };
             }
+
             return null;
         }
 
@@ -104,15 +138,24 @@ namespace DBS.Repositories
         {
             using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
+
             var cmd = new NpgsqlCommand(
-                "UPDATE produto SET nome=@nome, descricao=@descricao, preco=@preco, estoque=@estoque, id_categoria=@idCategoria WHERE id=@id",
+                @"UPDATE produto
+                SET nome = @nome,
+                    descricao = @descricao,
+                    preco = @preco,
+                    estoque = @estoque,
+                    id_categoria = @idCategoria
+                WHERE id = @id",
                 conn);
+
             cmd.Parameters.AddWithValue("@nome", produto.Nome);
             cmd.Parameters.AddWithValue("@descricao", (object?)produto.Descricao ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@preco", produto.Preco);
             cmd.Parameters.AddWithValue("@estoque", produto.Estoque);
             cmd.Parameters.AddWithValue("@idCategoria", (object?)produto.IdCategoria ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@id", produto.Id);
+
             cmd.ExecuteNonQuery();
         }
     }

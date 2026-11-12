@@ -1,12 +1,54 @@
+
+using DBS.Models;
 using DBS.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// MVC
 builder.Services.AddControllersWithViews();
 
-// Sessão (para o login funcionar)
+// JWT: aceita a variável do Render e mantém compatibilidade local.
+var jwtKey = builder.Configuration["JWT_SECRET"]
+    ?? builder.Configuration["Jwt:Key"];
+
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    throw new InvalidOperationException(
+        "A chave JWT não foi configurada.");
+}
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtKey)),
+            ClockSkew = TimeSpan.FromMinutes(1)
+        };
+    });
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PermitirMobile", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddDistributedMemoryCache();
+
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -14,11 +56,15 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// Injeção de dependência dos repositórios
 builder.Services.AddScoped<ClienteRepository>();
 builder.Services.AddScoped<ProdutoRepository>();
 builder.Services.AddScoped<PedidoRepository>();
 builder.Services.AddScoped<DashboardRepository>();
+builder.Services.AddScoped<VendedorRepository>();
+
+builder.Services.AddScoped<
+    IPasswordHasher<Vendedor>,
+    PasswordHasher<Vendedor>>();
 
 var app = builder.Build();
 
@@ -33,15 +79,17 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseCors("PermitirMobile"); // precisa vir depois de UseRouting e antes de UseAuthorization
+app.UseCors("PermitirMobile");
 
-app.UseSession(); // deve vir antes do UseAuthorization
+app.UseSession();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Login}/{action=Index}/{id?}");
 
-app.MapControllers(); // necessário para os Controllers com [ApiController] (rotas api/...) funcionarem
+app.MapControllers();
 
 app.Run();

@@ -1,70 +1,127 @@
+
 using DBS.Models;
 using DBS.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DBS.Controllers
 {
-    // Vendas = pedidos com status "Pago"
+    // Vendas = somente pedidos com status "Pago"
     public class VendasController : Controller
     {
         private readonly PedidoRepository _repo;
+        private readonly ClienteRepository _clienteRepo;
+        private readonly ProdutoRepository _produtoRepo;
 
-        public VendasController(PedidoRepository repo)
+        public VendasController(
+            PedidoRepository repo,
+            ClienteRepository clienteRepo,
+            ProdutoRepository produtoRepo)
         {
             _repo = repo;
+            _clienteRepo = clienteRepo;
+            _produtoRepo = produtoRepo;
+        }
+
+        private bool UsuarioLogado()
+        {
+            return HttpContext.Session.GetString("Usuario") != null;
+        }
+
+        private bool PodeGerenciarVendas()
+        {
+            var perfil = HttpContext.Session.GetString("Perfil");
+
+            return perfil == "Administrador" ||
+                   perfil == "Gerente";
         }
 
         public IActionResult Index()
         {
-            if (HttpContext.Session.GetString("Usuario") == null)
+            if (!UsuarioLogado())
                 return RedirectToAction("Index", "Login");
 
             ViewData["Title"] = "Vendas";
             ViewData["Pagina"] = "Vendas";
 
-            // Reutiliza GetAll — a view pode filtrar, ou podemos trazer todos os pedidos
-            var pedidos = _repo.GetAll();
-            _repo.CarregarItens(pedidos); // produtos de cada venda (uma consulta só)
-            return View(pedidos);
+            ViewBag.Clientes = _clienteRepo.GetAll();
+            ViewBag.Produtos = _produtoRepo.GetAll();
 
+            var vendas = _repo.GetAll()
+                .Where(p => string.Equals(
+                    p.Status,
+                    "Pago",
+                    StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            _repo.CarregarItens(vendas);
+
+            return View(vendas);
         }
+
         [HttpPost]
         public IActionResult Salvar(Pedido pedido)
         {
-            if (HttpContext.Session.GetString("Usuario") == null)
+            if (!UsuarioLogado())
                 return RedirectToAction("Index", "Login");
 
             _repo.Insert(pedido);
+
             return RedirectToAction("Index");
         }
 
         [HttpPost]
         public IActionResult Excluir(int id)
         {
-            if (HttpContext.Session.GetString("Usuario") == null)
+            if (!UsuarioLogado())
                 return RedirectToAction("Index", "Login");
 
+            if (!PodeGerenciarVendas())
+                return Forbid();
+
             _repo.Delete(id);
+
             return RedirectToAction("Index");
         }
+
         [HttpGet]
         public IActionResult Editar(int id)
         {
-            if (HttpContext.Session.GetString("Usuario") == null)
-                return RedirectToAction("Index", "Login");
+            if (!UsuarioLogado())
+                return Unauthorized();
+
+            if (!PodeGerenciarVendas())
+                return Forbid();
 
             var pedido = _repo.GetById(id);
-            if (pedido == null) return RedirectToAction("Index");
+
+            if (pedido == null)
+                return NotFound();
+
+            _repo.CarregarItens(new[] { pedido });
+
             return Json(pedido);
         }
 
         [HttpPost]
         public IActionResult Atualizar(Pedido pedido)
         {
-            if (HttpContext.Session.GetString("Usuario") == null)
+            if (!UsuarioLogado())
                 return RedirectToAction("Index", "Login");
 
-            _repo.Update(pedido);
+            if (!PodeGerenciarVendas())
+                return Forbid();
+
+            try
+            {
+                _repo.AtualizarComItens(pedido);
+
+                TempData["Sucesso"] = "Venda atualizada com sucesso!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Erro"] = ex.Message;
+            }
+
             return RedirectToAction("Index");
         }
     }

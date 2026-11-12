@@ -1,8 +1,15 @@
 @model List<DBS.Models.Pedido>
+
 @{
     ViewData["Title"] = "Vendas";
     ViewData["Pagina"] = "Vendas";
-    ViewData["ColspanItens"] = 7; // nº de colunas da tabela (para a linha de itens)
+    ViewData["ColspanItens"] = 7;
+
+    var perfilUsuario = Context.Session.GetString("Perfil");
+
+    var podeGerenciarVendas =
+        perfilUsuario == "Administrador" ||
+        perfilUsuario == "Gerente";
 }
 
 @section Styles {
@@ -19,11 +26,13 @@
             <span>Controle de vendas realizadas</span>
             <p></p>
         </div>
+
         <button class="btn-novo" onclick="abrirModal()">+ Nova Venda</button>
     </div>
 
     <div class="barra-busca">
         <input type="text" id="campoBusca" placeholder="Buscar cliente ou produto..." oninput="filtrarTabela()" />
+
         <select id="filtroStatus" onchange="filtrarTabela()">
             <option value="">Todos</option>
             <option value="pago">Pago</option>
@@ -44,37 +53,67 @@
                     <th>Ações</th>
                 </tr>
             </thead>
+
             <tbody>
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="7" style="text-align:center; color:#888;">Nenhuma venda registrada.</td>
+                        <td colspan="7" style="text-align:center; color:#888;">
+                            Nenhuma venda registrada.
+                        </td>
                     </tr>
                 }
+
                 @foreach (var venda in Model)
                 {
                     <tr class="linha-pedido"
                         data-status="@((venda.Status ?? "Pendente").ToLowerInvariant())"
                         data-itens="@(string.Join(" ", venda.Itens.Select(i => i.NomeProduto)).ToLowerInvariant())">
+
                         <td>#@venda.Id</td>
                         <td>@venda.ClienteNome</td>
-                        <td class="itens-celula"><partial name="_ItensResumo" model="venda" /></td>
+
+                        <td class="itens-celula">
+                            <partial name="_ItensResumo" model="venda" />
+                        </td>
+
                         <td>R$ @venda.ValorTotal.ToString("N2")</td>
-                        <td>@(venda.DataPedido != DateTime.MinValue ? venda.DataPedido.ToString("dd/MM/yyyy") : "—")</td>
+
+                        <td>
+                            @(venda.DataPedido != DateTime.MinValue
+                                ? venda.DataPedido.ToString("dd/MM/yyyy")
+                                : "—")
+                        </td>
+
                         <td>
                             <span class="status @(venda.Status?.ToLower() == "pago" ? "pago" : "pendente")">
                                 @(venda.Status ?? "Pendente")
                             </span>
                         </td>
+
                         <td>
-                            <button class="btn-acao editar" onclick="abrirModalEditar(@venda.Id)">Editar</button>
-                            <form method="post" asp-action="Excluir" asp-route-id="@venda.Id" style="display:inline"
-                                  onsubmit="return confirm('Excluir venda #@venda.Id?')">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn-acao excluir">Excluir</button>
-                            </form>
+                            @if (podeGerenciarVendas)
+                            {
+                                <button class="btn-acao editar" onclick="abrirModalEditar(@venda.Id)">
+                                    Editar
+                                </button>
+
+                                <form method="post"
+                                      asp-action="Excluir"
+                                      asp-route-id="@venda.Id"
+                                      style="display:inline"
+                                      onsubmit="return confirm('Excluir venda #@venda.Id?')">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit" class="btn-acao excluir">
+                                        Excluir
+                                    </button>
+                                </form>
+                            }
                         </td>
                     </tr>
+
                     <partial name="_ItensDetalhe" model="venda" />
                 }
             </tbody>
@@ -130,6 +169,7 @@
 
         <form method="post" asp-action="Atualizar">
             @Html.AntiForgeryToken()
+
             <input type="hidden" name="Id" id="editarId" />
 
             <div class="form-grupo">
@@ -160,13 +200,16 @@
 
 @section Scripts {
     <script src="~/js/pedido-itens.js" asp-append-version="true"></script>
+
     <script>
         function abrirModal() {
             document.getElementById('modalVenda').classList.add('aberto');
         }
+
         function fecharModal() {
             document.getElementById('modalVenda').classList.remove('aberto');
         }
+
         document.getElementById('modalVenda').addEventListener('click', function (e) {
             if (e.target === this) fecharModal();
         });
@@ -175,25 +218,29 @@
             fetch(`/Vendas/Editar/${id}`)
                 .then(r => r.json())
                 .then(v => {
-                    document.getElementById('editarId').value         = v.id;
-                    document.getElementById('editarIdCliente').value  = v.idCliente ?? '';
-                    document.getElementById('editarValor').value      = v.valorTotal;
-                    document.getElementById('editarStatus').value     = v.status ?? 'Pendente';
+                    document.getElementById('editarId').value = v.id;
+                    document.getElementById('editarIdCliente').value = v.idCliente ?? '';
+                    document.getElementById('editarValor').value = v.valorTotal;
+                    document.getElementById('editarStatus').value = v.status ?? 'Pendente';
                     document.getElementById('modalEditar').classList.add('aberto');
                 });
         }
+
         function fecharModalEditar() {
             document.getElementById('modalEditar').classList.remove('aberto');
         }
+
         document.getElementById('modalEditar').addEventListener('click', function (e) {
             if (e.target === this) fecharModalEditar();
         });
 
-        // Busca por nº, cliente, data, valor ou produto + filtro de status (pedido-itens.js)
+        // Busca por nº, cliente, data, valor ou produto + filtro de status
         function filtrarTabela() {
-            filtrarPedidos('tabelaVendas',
+            filtrarPedidos(
+                'tabelaVendas',
                 document.getElementById('campoBusca').value,
-                document.getElementById('filtroStatus').value);
+                document.getElementById('filtroStatus').value
+            );
         }
     </script>
 }
