@@ -1,10 +1,19 @@
-﻿FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+ENV ASPNETCORE_URLS=http://+:10000
+EXPOSE 10000
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-COPY . .
-RUN dotnet publish -c Release -o /app/publish
+COPY ["DBS.csproj", "./"]
+RUN dotnet restore "DBS.csproj"
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+COPY . .
+RUN dotnet publish "DBS.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
 WORKDIR /app
 
 COPY --from=build /app/publish .
