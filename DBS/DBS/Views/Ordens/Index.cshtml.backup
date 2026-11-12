@@ -1,0 +1,219 @@
+@section Styles {
+    <link rel="stylesheet" href="~/css/ordens.css" />
+    <link rel="stylesheet" href="~/css/pedido-itens.css" asp-append-version="true" />
+
+    <style>
+        /* Modal de edição */
+        #modalEditar .modal-grande {
+            width: 900px;
+            max-width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 28px;
+        }
+
+        #modalEditar .editor-secao {
+            margin-bottom: 22px;
+            padding: 18px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+        }
+
+        #modalEditar .editor-titulo {
+            display: block;
+            margin-bottom: 14px;
+            color: #1e293b;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        #modalEditar .campo-pesquisa {
+            position: relative;
+            width: 100%;
+        }
+
+            #modalEditar .campo-pesquisa input {
+                box-sizing: border-box;
+                width: 100%;
+                min-height: 44px;
+                padding: 10px 14px;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                background: #fff;
+                font-size: 14px;
+            }
+
+                #modalEditar .campo-pesquisa input:focus {
+                    outline: none;
+                    border-color: #2563eb;
+                    box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+                }
+
+        #modalEditar .lista-sugestoes {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: none;
+            max-height: 220px;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, .12);
+        }
+
+            #modalEditar .lista-sugestoes.aberta {
+                display: block;
+            }
+
+        #modalEditar .sugestao-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 100%;
+            padding: 12px 14px;
+            border: 0;
+            border-bottom: 1px solid #f1f5f9;
+            background: #fff;
+            text-align: left;
+            cursor: pointer;
+        }
+
+            #modalEditar .sugestao-item:hover {
+                background: #eff6ff;
+            }
+
+            #modalEditar .sugestao-item strong {
+                color: #1e293b;
+                font-size: 14px;
+            }
+
+            #modalEditar .sugestao-item span,
+            #modalEditar .sugestao-vazio {
+                color: #64748b;
+                font-size: 12px;
+            }
+
+        #modalEditar .sugestao-vazio {
+            padding: 14px;
+        }
+
+        #modalEditar .cliente-selecionado {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            background: #eff6ff;
+        }
+
+            #modalEditar .cliente-selecionado div {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            #modalEditar .cliente-selecionado strong {
+                color: #1e3a8a;
+            }
+
+            #modalEditar .cliente-selecionado span {
+                color: #64748b;
+                font-size: 12px;
+            }
+
+        #modalEditar .btn-trocar-cliente {
+            padding: 8px 12px;
+            border: 1px solid #bfdbfe;
+            border-radius: 7px;
+            background: #fff;
+            color: #1d4ed8;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        #modalEditar .tabela-itens {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: collapse;
+            background: #fff;
+        }
+
+            #modalEditar .tabela-itens th {
+                padding: 12px;
+                background: #f1f5f9;
+                color: #334155;
+                font-size: 12px;
+                text-align: left;
+                white-space: nowrap;
+            }
+
+            #modalEditar .tabela-itens td {
+                padding: 12px;
+                border-bottom: 1px solid #e2e8f0;
+                color: #334155;
+                font-size: 13px;
+            }
+
+        #modalEditar .quantidade-controle input {
+            width: 75px;
+            padding: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        #modalEditar .total-editor {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 8px;
+            background: #eff6ff;
+            color: #1e3a8a;
+        }
+
+            #modalEditar .total-editor strong {
+                font-size: 21px;
+            }
+
+        #modalEditar .editor-ajuda {
+            display: block;
+            margin-top: 9px;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        #modalEditar .form-grupo {
+            margin-bottom: 20px;
+        }
+
+            #modalEditar .form-grupo select {
+                box-sizing: border-box;
+                width: 100%;
+                min-height: 44px;
+                padding: 10px 12px;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                background: #fff;
+            }
+
+        @@media (max-width: 600px) {
+            #modalEditar .modal-grande {
+                width: 95%;
+                padding: 16px;
+            }
+
+            #modalEditar .cliente-selecionado {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    </style>
+}
