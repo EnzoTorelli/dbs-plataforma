@@ -116,16 +116,46 @@ namespace DBS.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AlterarStatus(int id, bool ativo)
+        public IActionResult AlterarStatus(int id)
         {
             if (!UsuarioEhAdministrador())
                 return RedirectToAction("Index", "Login");
 
-            _repository.AtualizarStatus(id, ativo);
+            bool? novoStatus = _repository.AlternarStatus(id);
 
-            TempData["Sucesso"] = ativo
-                ? "Acesso do vendedor ativado."
-                : "Acesso do vendedor desativado.";
+            if (novoStatus == null)
+            {
+                TempData["Erro"] = "Não foi possível localizar o vendedor para alterar o acesso.";
+            }
+            else
+            {
+                TempData["Sucesso"] = novoStatus.Value
+                    ? "Acesso do vendedor ativado."
+                    : "Acesso do vendedor desativado.";
+            }
+
+            return RedirectToAction("CadastrarExterno");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Excluir(int id)
+        {
+            if (!UsuarioEhAdministrador())
+                return RedirectToAction("Index", "Login");
+
+            bool excluido = _repository.Excluir(id);
+
+            if (excluido)
+            {
+                TempData["Sucesso"] =
+                    "Vendedor excluído da lista. O histórico de vendas foi preservado.";
+            }
+            else
+            {
+                TempData["Erro"] =
+                    "Não foi possível excluir o vendedor. Verifique se o cadastro existe.";
+            }
 
             return RedirectToAction("CadastrarExterno");
         }

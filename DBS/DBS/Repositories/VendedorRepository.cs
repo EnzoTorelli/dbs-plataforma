@@ -25,6 +25,7 @@ namespace DBS.Repositories
                     data_nascimento, descricao
                 FROM vendedor_app
                 WHERE LOWER(email) = LOWER(@email)
+                  AND excluido = FALSE
                 LIMIT 1", conn);
 
             cmd.Parameters.AddWithValue("@email", email.Trim());
@@ -97,6 +98,7 @@ namespace DBS.Repositories
                     data_nascimento, descricao
                 FROM vendedor_app
                 WHERE perfil IN ('VendedorExterno', 'VendedorInterno')
+                  AND excluido = FALSE
                 ORDER BY nome", conn);
 
             using var reader = cmd.ExecuteReader();
@@ -122,21 +124,45 @@ namespace DBS.Repositories
             return vendedores;
         }
 
-        public void AtualizarStatus(int id, bool ativo)
+        public bool? AlternarStatus(int id)
         {
             using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
 
             using var cmd = new NpgsqlCommand(@"
                 UPDATE vendedor_app
-                SET ativo = @ativo
+                SET ativo = NOT ativo
                 WHERE id = @id
-                  AND perfil IN ('VendedorExterno', 'VendedorInterno')", conn);
+                  AND perfil IN ('VendedorExterno', 'VendedorInterno')
+                  AND excluido = FALSE
+                RETURNING ativo", conn);
 
-            cmd.Parameters.AddWithValue("@ativo", ativo);
             cmd.Parameters.AddWithValue("@id", id);
 
-            cmd.ExecuteNonQuery();
+            var resultado = cmd.ExecuteScalar();
+
+            if (resultado == null || resultado == DBNull.Value)
+                return null;
+
+            return (bool)resultado;
+        }
+
+        public bool Excluir(int id)
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            using var cmd = new NpgsqlCommand(@"
+                UPDATE vendedor_app
+                SET ativo = FALSE,
+                    excluido = TRUE
+                WHERE id = @id
+                  AND perfil IN ('VendedorExterno', 'VendedorInterno')
+                  AND excluido = FALSE", conn);
+
+            cmd.Parameters.AddWithValue("@id", id);
+
+            return cmd.ExecuteNonQuery() > 0;
         }
 
         public void AtualizarSenhaHash(int id, string senhaHash)

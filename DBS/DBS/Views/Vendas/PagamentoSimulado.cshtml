@@ -1,0 +1,622 @@
+﻿@model DBS.Models.Pedido
+
+@{
+    Layout = "~/Views/Shared/_LayoutPagamento.cshtml";
+
+    ViewData["Title"] = "Pagamento simulado";
+
+    var totalParcelas = Model.Parcelas ?? 1;
+    var valorParcela = totalParcelas > 0
+        ? Model.ValorTotal / totalParcelas
+        : Model.ValorTotal;
+
+    var token = ViewBag.TokenPagamento as string ?? string.Empty;
+
+    var jaAprovado = string.Equals(
+        Model.Status,
+        "Pago",
+        StringComparison.OrdinalIgnoreCase);
+}
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        background: #f4f6f9;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .checkout-page {
+        min-height: 100vh;
+        padding: 35px 18px;
+    }
+
+    .checkout-container {
+        max-width: 1050px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 390px;
+        gap: 24px;
+        align-items: start;
+    }
+
+    .checkout-card {
+        background: #fff;
+        border: 1px solid #e3e8ef;
+        border-radius: 13px;
+        padding: 26px;
+        box-shadow: 0 5px 20px rgba(15, 23, 42, .045);
+    }
+
+    .checkout-header {
+        margin-bottom: 24px;
+    }
+
+        .checkout-header h1 {
+            color: #172b4d;
+            font-family: 'Sora', sans-serif;
+            font-size: 25px;
+            font-weight: 700;
+            margin: 0 0 7px;
+        }
+
+        .checkout-header p {
+            color: #64748b;
+            margin: 0;
+            font-size: 14px;
+        }
+
+    .checkout-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        background: #fff7e6;
+        color: #8a5b08;
+        border: 1px solid #f1d28d;
+        border-radius: 20px;
+        padding: 6px 11px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 17px;
+    }
+
+    .checkout-section-title {
+        color: #172b4d;
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0 0 17px;
+    }
+
+    .checkout-form-group {
+        margin-bottom: 16px;
+    }
+
+        .checkout-form-group label {
+            display: block;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 7px;
+        }
+
+    .checkout-input {
+        width: 100%;
+        height: 43px;
+        border: 1px solid #d8e0e9;
+        border-radius: 7px;
+        padding: 0 12px;
+        color: #172b4d;
+        background: #fff;
+        font-size: 14px;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+        .checkout-input:focus {
+            border-color: #3982c8;
+            box-shadow: 0 0 0 3px rgba(57, 130, 200, .12);
+        }
+
+        .checkout-input::placeholder {
+            color: #a0aab8;
+        }
+
+    .checkout-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 13px;
+    }
+
+    .checkout-aviso {
+        background: #f1f6fc;
+        border: 1px solid #d8e7f6;
+        border-radius: 8px;
+        padding: 12px 14px;
+        color: #365574;
+        font-size: 12px;
+        line-height: 1.55;
+        margin-top: 18px;
+    }
+
+        .checkout-aviso strong {
+            display: block;
+            margin-bottom: 3px;
+        }
+
+    .checkout-resumo-titulo {
+        color: #172b4d;
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0 0 20px;
+    }
+
+    .checkout-linha {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 11px 0;
+        border-bottom: 1px solid #edf0f4;
+        color: #64748b;
+        font-size: 13px;
+    }
+
+        .checkout-linha strong {
+            color: #26364b;
+            text-align: right;
+        }
+
+    .checkout-produtos {
+        margin: 13px 0;
+    }
+
+    .checkout-produto {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 7px 0;
+        color: #475569;
+        font-size: 12px;
+    }
+
+        .checkout-produto strong {
+            color: #334155;
+            white-space: nowrap;
+        }
+
+    .checkout-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #e5eaf0;
+        padding-top: 17px;
+        margin-top: 12px;
+    }
+
+        .checkout-total span {
+            color: #334155;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .checkout-total strong {
+            color: #172b4d;
+            font-size: 23px;
+            font-weight: 800;
+        }
+
+    .checkout-parcela {
+        color: #64748b;
+        font-size: 12px;
+        text-align: right;
+        margin-top: 5px;
+    }
+
+    .checkout-botao {
+        width: 100%;
+        height: 47px;
+        border: none;
+        border-radius: 7px;
+        background: #1769aa;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 22px;
+        transition: background .2s;
+    }
+
+        .checkout-botao:hover {
+            background: #12578f;
+        }
+
+        .checkout-botao:disabled {
+            opacity: .65;
+            cursor: not-allowed;
+        }
+
+    .checkout-alerta {
+        padding: 13px 15px;
+        border-radius: 8px;
+        margin-bottom: 18px;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+        .checkout-alerta.sucesso {
+            background: #eaf8ef;
+            border: 1px solid #b7e2c4;
+            color: #216638;
+        }
+
+        .checkout-alerta.erro {
+            background: #fff0f0;
+            border: 1px solid #f0c4c4;
+            color: #9b2929;
+        }
+
+    .checkout-aprovado {
+        text-align: center;
+        padding: 25px 10px;
+    }
+
+    .checkout-aprovado-icone {
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+        background: #e7f7ed;
+        color: #218447;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 34px;
+        margin: 0 auto 18px;
+    }
+
+    .checkout-aprovado h2 {
+        color: #216638;
+        font-size: 22px;
+        margin: 0 0 9px;
+    }
+
+    .checkout-aprovado p {
+        color: #64748b;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .checkout-rodape {
+        text-align: center;
+        color: #94a3b8;
+        font-size: 11px;
+        margin-top: 22px;
+    }
+
+    @@media (max-width: 800px) {
+        .checkout-container {
+            grid-template-columns: 1fr;
+            max-width: 550px;
+        }
+
+        .checkout-page {
+            padding: 20px 12px;
+        }
+
+        .checkout-card {
+            padding: 21px;
+        }
+    }
+
+    @@media (max-width: 420px) {
+        .checkout-grid {
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+    }
+</style>
+
+<div class="checkout-page">
+    <div class="checkout-container">
+
+        <div class="checkout-card">
+
+            <div class="checkout-header">
+                <span class="checkout-tag">
+                    Ambiente de demonstração
+                </span>
+
+                <h1>Pagamento com cartão</h1>
+
+                <p>Pedido #@Model.Id</p>
+            </div>
+
+            @if (TempData["Sucesso"] != null)
+            {
+                <div class="checkout-alerta sucesso">
+                    @TempData["Sucesso"]
+                </div>
+            }
+
+            @if (TempData["Erro"] != null)
+            {
+                <div class="checkout-alerta erro">
+                    @TempData["Erro"]
+                </div>
+            }
+
+            @if (jaAprovado)
+            {
+                <div class="checkout-aprovado">
+                    <div class="checkout-aprovado-icone">✓</div>
+
+                    <h2>Venda aprovada!</h2>
+
+                    <p>
+                        A simulação foi concluída com sucesso.
+                        O pedido já está registrado como pago no DBS ERP.
+                    </p>
+                </div>
+            }
+            else
+            {
+                <h3 class="checkout-section-title">
+                    Dados demonstrativos
+                </h3>
+
+                <form id="formCheckout"
+                      asp-controller="Vendas"
+                      asp-action="ConfirmarPagamentoSimulado"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="token"
+                           value="@token" />
+
+                    <div class="checkout-form-group">
+                        <label for="nomeTitular">Nome do titular</label>
+                        <input id="nomeTitular"
+                               class="checkout-input"
+                               type="text"
+                               placeholder="Ex.: João da Silva"
+                               maxlength="100"
+                               autocomplete="off"
+                               required />
+                    </div>
+
+                    <div class="checkout-form-group">
+                        <label for="cpfTitular">CPF demonstrativo</label>
+                        <input id="cpfTitular"
+                               class="checkout-input"
+                               type="text"
+                               placeholder="000.000.000-00"
+                               maxlength="14"
+                               inputmode="numeric"
+                               autocomplete="off"
+                               required />
+                    </div>
+
+                    <div class="checkout-form-group">
+                        <label for="numeroCartao">Número demonstrativo do cartão</label>
+                        <input id="numeroCartao"
+                               class="checkout-input"
+                               type="text"
+                               placeholder="0000 0000 0000 0000"
+                               maxlength="19"
+                               inputmode="numeric"
+                               autocomplete="off"
+                               required />
+                    </div>
+
+                    <div class="checkout-grid">
+                        <div class="checkout-form-group">
+                            <label for="validadeCartao">Validade</label>
+                            <input id="validadeCartao"
+                                   class="checkout-input"
+                                   type="text"
+                                   placeholder="MM/AA"
+                                   maxlength="5"
+                                   inputmode="numeric"
+                                   autocomplete="off"
+                                   required />
+                        </div>
+
+                        <div class="checkout-form-group">
+                            <label for="cvvCartao">CVV demonstrativo</label>
+                            <input id="cvvCartao"
+                                   class="checkout-input"
+                                   type="password"
+                                   placeholder="000"
+                                   maxlength="4"
+                                   inputmode="numeric"
+                                   autocomplete="off"
+                                   required />
+                        </div>
+                    </div>
+
+                    <div class="checkout-aviso">
+                        <strong>Importante: ambiente de teste</strong>
+                        Esta página não realiza cobranças reais.
+                        Utilize somente dados fictícios. Os dados digitados
+                        não serão enviados nem armazenados pelo sistema.
+                        Apenas a confirmação da simulação será registrada.
+                    </div>
+
+                    <button type="submit"
+                            id="btnConfirmar"
+                            class="checkout-botao">
+                        Confirmar pagamento simulado
+                    </button>
+                </form>
+            }
+
+            <div class="checkout-rodape">
+                DBS ERP · Ambiente demonstrativo de pagamento
+            </div>
+
+        </div>
+
+        <div class="checkout-card">
+            <h3 class="checkout-resumo-titulo">
+                Resumo do pedido
+            </h3>
+
+            <div class="checkout-linha">
+                <span>Pedido</span>
+                <strong>#@Model.Id</strong>
+            </div>
+
+            <div class="checkout-linha">
+                <span>Cliente</span>
+                <strong>@Model.ClienteNome</strong>
+            </div>
+
+            <div class="checkout-linha">
+                <span>Pagamento</span>
+                <strong>Cartão de crédito</strong>
+            </div>
+
+            <div class="checkout-linha">
+                <span>Parcelamento</span>
+                <strong>@totalParcelas x</strong>
+            </div>
+
+            <div class="checkout-produtos">
+                @if (Model.Itens != null)
+                {
+                    foreach (var item in Model.Itens)
+                    {
+                        <div class="checkout-produto">
+                            <span>
+                                @item.Quantidade x @item.NomeProduto
+                            </span>
+
+                            <strong>
+                                @item.Subtotal.ToString("C2")
+                            </strong>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="checkout-total">
+                <span>Total do pedido</span>
+                <strong>@Model.ValorTotal.ToString("C2")</strong>
+            </div>
+
+            <div class="checkout-parcela">
+                @totalParcelas x de @valorParcela.ToString("C2")
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    (() => {
+        const cpf = document.getElementById("cpfTitular");
+        const cartao = document.getElementById("numeroCartao");
+        const validade = document.getElementById("validadeCartao");
+        const cvv = document.getElementById("cvvCartao");
+        const form = document.getElementById("formCheckout");
+        const botao = document.getElementById("btnConfirmar");
+
+        if (!form) return;
+
+        function apenasNumeros(valor) {
+            return valor.replace(/\D/g, "");
+        }
+
+        cpf.addEventListener("input", () => {
+            let valor = apenasNumeros(cpf.value).slice(0, 11);
+
+            valor = valor.replace(/^(\d{3})(\d)/, "$1.$2");
+            valor = valor.replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3");
+            valor = valor.replace(
+                /^(\d{3})\.(\d{3})\.(\d{3})(\d{1,2})$/,
+                "$1.$2.$3-$4"
+            );
+
+            cpf.value = valor;
+        });
+
+        cartao.addEventListener("input", () => {
+            let valor = apenasNumeros(cartao.value).slice(0, 16);
+            cartao.value = valor.replace(/(\d{4})(?=\d)/g, "$1 ");
+        });
+
+        validade.addEventListener("input", () => {
+            let valor = apenasNumeros(validade.value).slice(0, 4);
+
+            if (valor.length > 2) {
+                valor = valor.slice(0, 2) + "/" + valor.slice(2);
+            }
+
+            validade.value = valor;
+        });
+
+        cvv.addEventListener("input", () => {
+            cvv.value = apenasNumeros(cvv.value).slice(0, 4);
+        });
+
+        form.addEventListener("submit", (event) => {
+            const numerosCpf = apenasNumeros(cpf.value);
+            const numerosCartao = apenasNumeros(cartao.value);
+            const numerosCvv = apenasNumeros(cvv.value);
+            const numerosValidade = apenasNumeros(validade.value);
+
+            if (numerosCpf.length !== 11) {
+                event.preventDefault();
+                alert("Informe um CPF demonstrativo com 11 números.");
+                cpf.focus();
+                return;
+            }
+
+            if (numerosCartao.length !== 16) {
+                event.preventDefault();
+                alert("Informe um cartão demonstrativo com 16 números.");
+                cartao.focus();
+                return;
+            }
+
+            if (numerosCvv.length < 3 || numerosCvv.length > 4) {
+                event.preventDefault();
+                alert("Informe um CVV demonstrativo com 3 ou 4 números.");
+                cvv.focus();
+                return;
+            }
+
+            if (numerosValidade.length !== 4) {
+                event.preventDefault();
+                alert("Informe a validade no formato MM/AA.");
+                validade.focus();
+                return;
+            }
+
+            const mes = parseInt(numerosValidade.slice(0, 2), 10);
+
+            if (mes < 1 || mes > 12) {
+                event.preventDefault();
+                alert("Informe um mês de validade entre 01 e 12.");
+                validade.focus();
+                return;
+            }
+
+            if (!confirm(
+                "Confirmar a aprovação demonstrativa deste pedido?"
+            )) {
+                event.preventDefault();
+                return;
+            }
+
+            // Os campos demonstrativos não possuem atributo name.
+            // Somente o token e o antiforgery token são enviados.
+
+            botao.disabled = true;
+            botao.textContent = "Confirmando...";
+        });
+    })();
+</script>

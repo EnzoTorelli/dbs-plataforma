@@ -132,6 +132,16 @@
                         <div class="user-cargo">@cargoUsuario</div>
                     </div>
                 </div>
+
+                <form asp-controller="Login" asp-action="Logout" method="post" class="form-logout">
+                    <button type="submit" class="btn-logout">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" />
+                            <path d="M10 11l4-3-4-3M14 8H6" />
+                        </svg>
+                        Sair
+                    </button>
+                </form>
             </div>
 
         </div>

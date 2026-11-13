@@ -193,9 +193,7 @@
                oninput="filtrarTabela()" />
 
         <select id="filtroStatus" onchange="filtrarTabela()">
-            <option value="">Todos</option>
-            <option value="pendente">Pendente</option>
-            <option value="pago">Pago</option>
+            <option value="pendente" selected>Pendente</option>
             <option value="cancelado">Cancelado</option>
         </select>
     </div>
@@ -672,72 +670,78 @@
             document.getElementById('modalEditar').classList.remove('aberto');
         }
 
-        document.getElementById('modalEditar').addEventListener('click', function (e) {
-            if (e.target === this) fecharModalEditar();
-        });
+        const modalEditarElemento = document.getElementById('modalEditar');
+
+        if (modalEditarElemento) {
+            modalEditarElemento.addEventListener('click', function (e) {
+                if (e.target === this) fecharModalEditar();
+            });
+        }
 
         // PESQUISA DE CLIENTES
 
         const buscaCliente = document.getElementById('buscaCliente');
 
-        buscaCliente.addEventListener('input', function () {
+        if (buscaCliente) {
+            buscaCliente.addEventListener('input', function () {
 
-            const termo = texto(this.value.trim());
-            const lista = document.getElementById('sugestoesClientes');
+                const termo = texto(this.value.trim());
+                const lista = document.getElementById('sugestoesClientes');
 
-            lista.innerHTML = '';
+                lista.innerHTML = '';
 
-            if (!termo) {
-                lista.classList.remove('aberta');
-                return;
-            }
+                if (!termo) {
+                    lista.classList.remove('aberta');
+                    return;
+                }
 
-            const encontrados = clientes.filter(c => {
+                const encontrados = clientes.filter(c => {
 
-                const nome = texto(obter(c, 'nome', 'Nome'));
-                const razao = texto(obter(c, 'razaoSocial', 'RazaoSocial'));
-                const fantasia = texto(obter(c, 'nomeFantasia', 'NomeFantasia'));
-                const cnpj = texto(documentoCliente(c));
+                    const nome = texto(obter(c, 'nome', 'Nome'));
+                    const razao = texto(obter(c, 'razaoSocial', 'RazaoSocial'));
+                    const fantasia = texto(obter(c, 'nomeFantasia', 'NomeFantasia'));
+                    const cnpj = texto(documentoCliente(c));
 
-                return nome.includes(termo) ||
-                    razao.includes(termo) ||
-                    fantasia.includes(termo) ||
-                    cnpj.includes(termo);
-            });
+                    return nome.includes(termo) ||
+                        razao.includes(termo) ||
+                        fantasia.includes(termo) ||
+                        cnpj.includes(termo);
+                });
 
-            if (encontrados.length === 0) {
-                const vazio = document.createElement('div');
-                vazio.className = 'sugestao-vazio';
-                vazio.textContent = 'Nenhum cliente encontrado.';
-                lista.appendChild(vazio);
+                if (encontrados.length === 0) {
+                    const vazio = document.createElement('div');
+                    vazio.className = 'sugestao-vazio';
+                    vazio.textContent = 'Nenhum cliente encontrado.';
+                    lista.appendChild(vazio);
+                    lista.classList.add('aberta');
+                    return;
+                }
+
+                encontrados.forEach(c => {
+
+                    const botao = document.createElement('button');
+                    botao.type = 'button';
+                    botao.className = 'sugestao-item';
+
+                    const titulo = document.createElement('strong');
+                    titulo.textContent = nomeCliente(c) || 'Cliente sem nome';
+
+                    const detalhe = document.createElement('span');
+                    detalhe.textContent =
+                        documentoCliente(c) ||
+                        obter(c, 'razaoSocial', 'RazaoSocial') ||
+                        '';
+
+                    botao.appendChild(titulo);
+                    botao.appendChild(detalhe);
+
+                    botao.addEventListener('click', () => selecionarCliente(c));
+                    lista.appendChild(botao);
+                });
+
                 lista.classList.add('aberta');
-                return;
-            }
-
-            encontrados.forEach(c => {
-
-                const botao = document.createElement('button');
-                botao.type = 'button';
-                botao.className = 'sugestao-item';
-
-                const titulo = document.createElement('strong');
-                titulo.textContent = nomeCliente(c) || 'Cliente sem nome';
-
-                const detalhe = document.createElement('span');
-                detalhe.textContent =
-                    documentoCliente(c) ||
-                    obter(c, 'razaoSocial', 'RazaoSocial') ||
-                    '';
-
-                botao.appendChild(titulo);
-                botao.appendChild(detalhe);
-
-                botao.addEventListener('click', () => selecionarCliente(c));
-                lista.appendChild(botao);
             });
-
-            lista.classList.add('aberta');
-        });
+        }
 
         function selecionarCliente(cliente) {
 
@@ -768,59 +772,61 @@
 
         const buscaProduto = document.getElementById('buscaProduto');
 
-        buscaProduto.addEventListener('input', function () {
+        if (buscaProduto) {
+            buscaProduto.addEventListener('input', function () {
 
-            const termo = texto(this.value.trim());
-            const lista = document.getElementById('sugestoesProdutos');
+                const termo = texto(this.value.trim());
+                const lista = document.getElementById('sugestoesProdutos');
 
-            lista.innerHTML = '';
+                lista.innerHTML = '';
 
-            if (!termo) {
-                lista.classList.remove('aberta');
-                return;
-            }
+                if (!termo) {
+                    lista.classList.remove('aberta');
+                    return;
+                }
 
-            const encontrados = produtos.filter(p =>
-                texto(nomeProduto(p)).includes(termo)
-            );
+                const encontrados = produtos.filter(p =>
+                    texto(nomeProduto(p)).includes(termo)
+                );
 
-            if (encontrados.length === 0) {
+                if (encontrados.length === 0) {
 
-                const vazio = document.createElement('div');
-                vazio.className = 'sugestao-vazio';
-                vazio.textContent = 'Nenhum produto encontrado.';
+                    const vazio = document.createElement('div');
+                    vazio.className = 'sugestao-vazio';
+                    vazio.textContent = 'Nenhum produto encontrado.';
 
-                lista.appendChild(vazio);
+                    lista.appendChild(vazio);
+                    lista.classList.add('aberta');
+                    return;
+                }
+
+                encontrados.forEach(p => {
+
+                    const botao = document.createElement('button');
+                    botao.type = 'button';
+                    botao.className = 'sugestao-item';
+
+                    const titulo = document.createElement('strong');
+                    titulo.textContent = nomeProduto(p) || 'Produto sem nome';
+
+                    const detalhe = document.createElement('span');
+
+                    detalhe.textContent =
+                        'R$ ' + precoProduto(p).toLocaleString('pt-BR', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }) + ' | Estoque: ' + estoqueProduto(p);
+
+                    botao.appendChild(titulo);
+                    botao.appendChild(detalhe);
+
+                    botao.addEventListener('click', () => adicionarProduto(p));
+                    lista.appendChild(botao);
+                });
+
                 lista.classList.add('aberta');
-                return;
-            }
-
-            encontrados.forEach(p => {
-
-                const botao = document.createElement('button');
-                botao.type = 'button';
-                botao.className = 'sugestao-item';
-
-                const titulo = document.createElement('strong');
-                titulo.textContent = nomeProduto(p) || 'Produto sem nome';
-
-                const detalhe = document.createElement('span');
-
-                detalhe.textContent =
-                    'R$ ' + precoProduto(p).toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }) + ' | Estoque: ' + estoqueProduto(p);
-
-                botao.appendChild(titulo);
-                botao.appendChild(detalhe);
-
-                botao.addEventListener('click', () => adicionarProduto(p));
-                lista.appendChild(botao);
             });
-
-            lista.classList.add('aberta');
-        });
+        }
 
         // ADICIONAR PRODUTO
 
@@ -912,11 +918,11 @@
             if (itensOrdem.length === 0) {
 
                 lista.innerHTML = `
-                            <tr>
-                                <td colspan="5" class="itens-vazio">
-                                    Nenhum produto adicionado.
-                                </td>
-                            </tr>`;
+                                            <tr>
+                                                <td colspan="5" class="itens-vazio">
+                                                    Nenhum produto adicionado.
+                                                </td>
+                                            </tr>`;
 
                 atualizarTotal();
                 return;
@@ -1101,8 +1107,10 @@
 
         // VALIDAR E ENVIAR EDIÇÃO
 
-        document.getElementById('formEditarOrdem')
-            .addEventListener('submit', function (e) {
+        const formEditarOrdem = document.getElementById('formEditarOrdem');
+
+        if (formEditarOrdem) {
+            formEditarOrdem.addEventListener('submit', function (e) {
 
                 const clienteId =
                     document.getElementById('editarIdCliente').value;
@@ -1167,6 +1175,7 @@
                     this.appendChild(quantidadeInput);
                 });
             });
+        }
 
         // FILTROS DA TABELA
 
@@ -1178,6 +1187,12 @@
                 document.getElementById('filtroStatus').value
             );
         }
+
+        // AO ABRIR A TELA, MOSTRAR SOMENTE ORDENS PENDENTES
+
+        document.addEventListener('DOMContentLoaded', function () {
+            filtrarTabela();
+        });
 
     </script>
 }

@@ -29,10 +29,10 @@
         </div>
     }
 
-    @if (ViewBag.Erro != null)
+    @if (TempData["Erro"] != null || ViewBag.Erro != null)
     {
         <div style="padding:14px 18px; background:var(--cor-erro-bg); color:var(--cor-erro); border-radius:8px; font-size:14px;">
-            @ViewBag.Erro
+            @(TempData["Erro"] ?? ViewBag.Erro)
         </div>
     }
 
@@ -211,7 +211,8 @@
                                     }
                                 </td>
 
-                                <td style="text-align:right;">
+                                <td style="text-align:right; white-space:nowrap;">
+
                                     <form method="post"
                                           asp-controller="Vendedor"
                                           asp-action="AlterarStatus"
@@ -222,10 +223,6 @@
                                         <input type="hidden"
                                                name="id"
                                                value="@vendedor.Id" />
-
-                                        <input type="hidden"
-                                               name="ativo"
-                                               value="@(!vendedor.Ativo)" />
 
                                         @if (vendedor.Ativo)
                                         {
@@ -245,6 +242,26 @@
                                         }
 
                                     </form>
+
+                                    <form method="post"
+                                          asp-controller="Vendedor"
+                                          asp-action="Excluir"
+                                          style="display:inline; margin-left:6px;">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="id"
+                                               value="@vendedor.Id" />
+
+                                        <button type="submit"
+                                                class="btn-acao"
+                                                onclick="return confirm('Deseja excluir este vendedor? Ele desaparecerá desta lista, mas o histórico de vendas será preservado.');">
+                                            Excluir
+                                        </button>
+
+                                    </form>
+
                                 </td>
                             </tr>
                         }

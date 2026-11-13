@@ -1,5 +1,7 @@
 @model List<DBS.Models.Pedido>
 
+@using System.Text.Json
+
 @{
     ViewData["Title"] = "Vendas";
     ViewData["Pagina"] = "Vendas";
@@ -10,11 +12,528 @@
     var podeGerenciarVendas =
         perfilUsuario == "Administrador" ||
         perfilUsuario == "Gerente";
+
+    var clientesJson = JsonSerializer.Serialize(
+        ViewBag.Clientes,
+        new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+    );
+
+    var produtosJson = JsonSerializer.Serialize(
+        ViewBag.Produtos,
+        new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+    );
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/vendas.css" />
+    <link rel="stylesheet" href="~/css/vendas.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/pedido-itens.css" asp-append-version="true" />
+
+    <style>
+        /* FUNDO QUE COBRE A TELA INTEIRA */
+        #modalVenda.modal-overlay {
+            background: rgba(15, 23, 42, .68) !important;
+            padding: 16px;
+        }
+
+        /* JANELA PRINCIPAL */
+        #modalVenda .modal {
+            width: 94%;
+            max-width: 820px;
+            max-height: 90vh;
+            overflow: hidden;
+            padding: 0;
+            background: #F1F5F9 !important;
+            border: 1px solid #dce5ed;
+            border-radius: 14px;
+            box-shadow: 0 20px 55px rgba(15, 23, 42, .22);
+        }
+
+            /* FORMULÁRIO */
+            #modalVenda .modal > form {
+                display: block;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                background: #F1F5F9 !important;
+            }
+
+        /* CABEÇALHO */
+        #modalVenda .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 17px 22px;
+            margin: 0;
+            background: #F1F5F9 !important;
+            border-bottom: 1px solid #dce5ed;
+        }
+
+            #modalVenda .modal-header h2 {
+                color: #18181b !important;
+                font-size: 20px;
+                font-weight: 750;
+                margin: 0;
+            }
+
+        #modalVenda .modal-fechar {
+            color: #71717a !important;
+            font-size: 27px;
+        }
+
+            #modalVenda .modal-fechar:hover {
+                color: #0d9488 !important;
+            }
+
+        /* CONTEÚDO COM ROLAGEM */
+        #modalVenda .venda-formulario {
+            max-height: calc(90vh - 130px);
+            overflow-y: auto;
+            padding: 18px 22px;
+            background: #F1F5F9 !important;
+        }
+
+            #modalVenda .venda-formulario::-webkit-scrollbar {
+                width: 7px;
+            }
+
+            #modalVenda .venda-formulario::-webkit-scrollbar-thumb {
+                background: #a1a1aa;
+                border-radius: 10px;
+            }
+
+        /* TRÊS SEÇÕES ESCURAS */
+        #modalVenda .venda-secao {
+            position: relative;
+            background: #18181b !important;
+            color: #ffffff !important;
+            padding: 17px 19px;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            border: 1px solid #27272a;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, .08);
+        }
+
+            #modalVenda .venda-secao h3 {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                color: #ffffff !important;
+                font-size: 15px;
+                font-weight: 700;
+                margin: 0 0 15px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid #3f3f46;
+            }
+
+        #modalVenda .venda-numero {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 27px;
+            height: 27px;
+            flex-shrink: 0;
+            border-radius: 7px;
+            background: rgba(13, 148, 136, .20);
+            color: #5eead4;
+            border: 1px solid rgba(13, 148, 136, .35);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        /* CAMPOS */
+        #modalVenda .form-grupo {
+            margin-bottom: 0;
+        }
+
+            #modalVenda .form-grupo label {
+                display: block;
+                color: #e4e4e7 !important;
+                font-size: 13px;
+                font-weight: 650;
+                margin-bottom: 7px;
+            }
+
+            #modalVenda .form-grupo input,
+            #modalVenda .form-grupo select {
+                display: block;
+                width: 100%;
+                min-height: 41px;
+                padding: 9px 12px;
+                background: #ffffff !important;
+                color: #18181b !important;
+                border: 1px solid #d4d4d8 !important;
+                border-radius: 7px;
+                font-size: 14px;
+                transition: border-color .2s, box-shadow .2s;
+            }
+
+                #modalVenda .form-grupo input::placeholder {
+                    color: #a1a1aa !important;
+                    opacity: 1;
+                }
+
+                #modalVenda .form-grupo input:focus,
+                #modalVenda .form-grupo select:focus {
+                    outline: none;
+                    border-color: #0d9488 !important;
+                    box-shadow: 0 0 0 3px rgba(13, 148, 136, .16);
+                }
+
+                #modalVenda .form-grupo select option {
+                    color: #18181b;
+                    background: #ffffff;
+                }
+
+        /* PESQUISA E SUGESTÕES */
+        #modalVenda .venda-busca {
+            position: relative;
+        }
+
+        #modalVenda .venda-sugestoes {
+            display: none;
+            position: absolute;
+            top: calc(100% + 5px);
+            left: 0;
+            right: 0;
+            background: #ffffff !important;
+            color: #334155 !important;
+            border: 1px solid #dbe3ec;
+            border-radius: 7px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1100;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, .16);
+        }
+
+        #modalVenda .venda-sugestao {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            cursor: pointer;
+            border: none;
+            border-bottom: 1px solid #edf0f4;
+            font-size: 14px;
+            text-align: left;
+            color: #334155 !important;
+            background: #ffffff !important;
+            transition: background .15s;
+        }
+
+            #modalVenda .venda-sugestao:last-child {
+                border-bottom: none;
+            }
+
+            #modalVenda .venda-sugestao:hover {
+                background: #f0fdfa !important;
+                color: #0f766e !important;
+            }
+
+        /* CLIENTE SELECIONADO */
+        #modalVenda .venda-selecionado {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 11px;
+            padding: 11px 13px;
+            background: #f0fdfa !important;
+            color: #115e59 !important;
+            border: 1px solid #99f6e4;
+            border-radius: 7px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        #modalVenda .venda-cliente-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        #modalVenda .venda-cliente-icone {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+            border-radius: 7px;
+            background: #ccfbf1;
+            color: #0f766e;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        #modalVenda .venda-cliente-dados {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+            #modalVenda .venda-cliente-dados strong {
+                color: #115e59 !important;
+                font-size: 14px;
+                font-weight: 700;
+            }
+
+            #modalVenda .venda-cliente-dados span {
+                color: #527568 !important;
+                font-size: 13px;
+            }
+
+        /* CARRINHO */
+        #modalVenda .venda-carrinho-container {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid #dce4ed;
+            border-radius: 7px;
+            margin-top: 12px;
+        }
+
+        #modalVenda .venda-carrinho {
+            width: 100%;
+            min-width: 580px;
+            border-collapse: collapse;
+            background: #ffffff !important;
+            margin: 0;
+        }
+
+            #modalVenda .venda-carrinho th {
+                padding: 10px;
+                background: #f1f5f9 !important;
+                color: #475569 !important;
+                border-bottom: 1px solid #dce4ed;
+                text-align: left;
+                font-size: 12px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: .3px;
+            }
+
+            #modalVenda .venda-carrinho td {
+                padding: 10px;
+                border-bottom: 1px solid #edf0f4;
+                text-align: left;
+                font-size: 14px;
+                color: #334155 !important;
+                background: #ffffff !important;
+            }
+
+            #modalVenda .venda-carrinho tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+            #modalVenda .venda-carrinho tbody tr:hover td {
+                background: #f8fafc !important;
+            }
+
+            #modalVenda .venda-carrinho input {
+                width: 65px;
+                min-height: 32px;
+                padding: 5px 7px;
+                background: #ffffff !important;
+                color: #18181b !important;
+                border: 1px solid #cbd5e1 !important;
+                border-radius: 5px;
+                text-align: center;
+                font-size: 14px;
+            }
+
+        #modalVenda .venda-estoque {
+            color: #64748b !important;
+            font-size: 13px;
+        }
+
+        #modalVenda .venda-remover {
+            border: 1px solid #fecaca;
+            background: #fff5f5 !important;
+            color: #b42318 !important;
+            padding: 6px 9px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 650;
+        }
+
+            #modalVenda .venda-remover:hover {
+                background: #fee2e2 !important;
+            }
+
+        #modalVenda #carrinhoVazio {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 55px;
+            padding: 12px;
+            margin-top: 10px;
+            border: 1px dashed #52525b;
+            border-radius: 7px;
+            color: #d4d4d8 !important;
+            background: #27272a !important;
+            font-size: 14px;
+        }
+
+        /* TOTAL */
+        #modalVenda .venda-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            margin-top: 12px;
+            background: rgba(13, 148, 136, .12) !important;
+            border: 1px solid rgba(13, 148, 136, .35);
+            border-radius: 8px;
+            color: #5eead4 !important;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+            #modalVenda .venda-total span:last-child {
+                color: #5eead4 !important;
+                font-size: 20px;
+                font-weight: 800;
+            }
+
+        /* PAGAMENTO */
+        #modalVenda .venda-pagamento {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 13px;
+        }
+
+            #modalVenda .venda-pagamento .form-grupo {
+                margin-bottom: 0;
+            }
+
+        #modalVenda .venda-aviso {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            padding: 11px 13px;
+            margin-top: 13px;
+            background: #fffbeb !important;
+            border: 1px solid #fde68a;
+            border-radius: 7px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #854d0e !important;
+        }
+
+        /* RODAPÉ */
+        #modalVenda .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 22px;
+            margin: 0;
+            background: #F1F5F9 !important;
+            border-top: 1px solid #dce5ed;
+        }
+
+            #modalVenda .modal-footer button {
+                min-height: 40px;
+                padding: 9px 17px;
+                border-radius: 7px;
+                font-size: 14px;
+                font-weight: 700;
+            }
+
+            #modalVenda .modal-footer .btn-cancelar {
+                background: #ffffff !important;
+                color: #52525b !important;
+                border: 1px solid #d4d4d8 !important;
+            }
+
+                #modalVenda .modal-footer .btn-cancelar:hover {
+                    background: #f4f4f5 !important;
+                }
+
+            #modalVenda .modal-footer .btn-salvar {
+                background: #0d9488 !important;
+                color: #ffffff !important;
+                border: 1px solid #0d9488 !important;
+            }
+
+                #modalVenda .modal-footer .btn-salvar:hover {
+                    background: #0f766e !important;
+                    border-color: #0f766e !important;
+                }
+
+        /* MENSAGENS */
+        .venda-mensagem {
+            padding: 13px 16px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .venda-sucesso {
+            background: #e8f7ee;
+            color: #176b38;
+            border: 1px solid #c2e8d0;
+        }
+
+        .venda-erro {
+            background: #fdecec;
+            color: #a32121;
+            border: 1px solid #f4caca;
+        }
+
+        .venda-link {
+            display: inline-block;
+            margin-top: 8px;
+            color: #145da0;
+            font-weight: 750;
+        }
+
+        /* RESPONSIVIDADE */
+        @@media (max-width: 650px) {
+            #modalVenda.modal-overlay {
+                padding: 7px;
+            }
+
+            #modalVenda .modal {
+                width: 100%;
+                max-height: 96vh;
+                border-radius: 10px;
+            }
+
+            #modalVenda .modal-header {
+                padding: 12px 14px;
+            }
+
+            #modalVenda .venda-formulario {
+                max-height: calc(96vh - 115px);
+                padding: 10px;
+            }
+
+            #modalVenda .venda-secao {
+                padding: 13px;
+                margin-bottom: 10px;
+            }
+
+            #modalVenda .venda-pagamento {
+                grid-template-columns: 1fr;
+            }
+
+            #modalVenda .venda-total span:last-child {
+                font-size: 18px;
+            }
+
+            #modalVenda .modal-footer {
+                padding: 10px;
+            }
+
+                #modalVenda .modal-footer button {
+                    flex: 1;
+                    padding: 9px 8px;
+                    font-size: 13px;
+                }
+        }
+    </style>
 }
 
 <div class="page-wrap">
@@ -27,17 +546,38 @@
             <p></p>
         </div>
 
-        <button class="btn-novo" onclick="abrirModal()">+ Nova Venda</button>
+        <button class="btn-novo" type="button" onclick="abrirModal()">
+            + Nova Venda
+        </button>
     </div>
 
-    <div class="barra-busca">
-        <input type="text" id="campoBusca" placeholder="Buscar cliente ou produto..." oninput="filtrarTabela()" />
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="venda-mensagem venda-sucesso">
+            @TempData["Sucesso"]
 
-        <select id="filtroStatus" onchange="filtrarTabela()">
-            <option value="">Todos</option>
-            <option value="pago">Pago</option>
-            <option value="pendente">Pendente</option>
-        </select>
+            @if (TempData["LinkPagamento"] != null)
+            {
+                <br />
+                <a class="venda-link" href="@TempData["LinkPagamento"]" target="_blank">
+                    Abrir link de pagamento simulado
+                </a>
+            }
+        </div>
+    }
+
+    @if (TempData["Erro"] != null)
+    {
+        <div class="venda-mensagem venda-erro">
+            @TempData["Erro"]
+        </div>
+    }
+
+    <div class="barra-busca">
+        <input type="text"
+               id="campoBusca"
+               placeholder="Buscar cliente ou produto..."
+               oninput="filtrarTabela()" />
     </div>
 
     <div class="painel">
@@ -94,10 +634,6 @@
                         <td>
                             @if (podeGerenciarVendas)
                             {
-                                <button class="btn-acao editar" onclick="abrirModalEditar(@venda.Id)">
-                                    Editar
-                                </button>
-
                                 <form method="post"
                                       asp-action="Excluir"
                                       asp-route-id="@venda.Id"
@@ -119,80 +655,173 @@
             </tbody>
         </table>
     </div>
-
 </div>
 
-<!-- Modal de Cadastro -->
+<!-- MODAL DE CADASTRO DE VENDA -->
+
 <div class="modal-overlay" id="modalVenda">
     <div class="modal">
+
         <div class="modal-header">
-            <h2>Nova Venda</h2>
+            <div>
+                <h2>Nova Venda</h2>
+            </div>
+
             <button type="button" class="modal-fechar" onclick="fecharModal()">×</button>
         </div>
 
-        <form method="post" asp-action="Salvar">
+        <form method="post" asp-action="Salvar" id="formNovaVenda">
             @Html.AntiForgeryToken()
 
-            <div class="form-grupo">
-                <label>ID do Cliente</label>
-                <input type="number" name="IdCliente" placeholder="Ex: 1" />
-            </div>
+            <div class="venda-formulario">
 
-            <div class="form-grupo">
-                <label>Valor (R$)</label>
-                <input type="number" name="Valor" placeholder="0,00" step="0.01" />
-            </div>
+                <input type="hidden" name="Status" value="Pendente" />
+                <input type="hidden" name="IdCliente" id="idClienteVenda" />
 
-            <div class="form-grupo">
-                <label>Status</label>
-                <select name="Status">
-                    <option value="Pendente">Pendente</option>
-                    <option value="Pago">Pago</option>
-                </select>
+                <!-- CLIENTE -->
+
+                <div class="venda-secao">
+                    <h3>
+                        <span class="venda-numero">1</span>
+                        Dados do cliente
+                    </h3>
+
+                    <div class="form-grupo venda-busca">
+                        <label>Buscar cliente</label>
+
+                        <input type="text"
+                               id="buscaClienteVenda"
+                               placeholder="Digite nome, razão social, nome fantasia ou CNPJ..."
+                               autocomplete="off" />
+
+                        <div class="venda-sugestoes" id="sugestoesClientes"></div>
+                    </div>
+
+                    <div class="venda-selecionado" id="clienteSelecionado" style="display:none;">
+                        <div class="venda-cliente-info">
+                            <div class="venda-cliente-icone">✓</div>
+
+                            <div class="venda-cliente-dados">
+                                <strong id="clienteSelecionadoNome"></strong>
+                                <span id="clienteSelecionadoDocumento"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PRODUTOS -->
+
+                <div class="venda-secao">
+                    <h3>
+                        <span class="venda-numero">2</span>
+                        Produtos da venda
+                    </h3>
+
+                    <div class="form-grupo venda-busca">
+                        <label>Buscar produto</label>
+
+                        <input type="text"
+                               id="buscaProdutoVenda"
+                               placeholder="Digite o nome ou descrição do produto..."
+                               autocomplete="off" />
+
+                        <div class="venda-sugestoes" id="sugestoesProdutos"></div>
+                    </div>
+
+                    <div id="carrinhoVazio">
+                        Nenhum produto adicionado à venda.
+                    </div>
+
+                    <div class="venda-carrinho-container" id="containerCarrinho" style="display:none;">
+                        <table class="venda-carrinho" id="tabelaCarrinho">
+                            <thead>
+                                <tr>
+                                    <th>Produto</th>
+                                    <th>Preço</th>
+                                    <th>Estoque</th>
+                                    <th>Qtd.</th>
+                                    <th>Subtotal</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="itensCarrinho"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="venda-total">
+                        <span>Total da venda</span>
+                        <span id="totalVenda">R$ 0,00</span>
+                    </div>
+                </div>
+
+                <!-- PAGAMENTO -->
+
+                <div class="venda-secao">
+                    <h3>
+                        <span class="venda-numero">3</span>
+                        Condições de pagamento
+                    </h3>
+
+                    <div class="venda-pagamento">
+
+                        <div class="form-grupo">
+                            <label>Forma de pagamento</label>
+
+                            <select name="FormaPagamento" id="formaPagamento" required>
+                                <option value="">Selecione uma opção</option>
+                                <option value="Dinheiro">Dinheiro</option>
+                                <option value="Pix">Pix</option>
+                                <option value="Faturado">Faturado</option>
+                                <option value="Cartão de crédito">Cartão de crédito</option>
+                            </select>
+                        </div>
+
+                        <div class="form-grupo" id="grupoParcelas" style="display:none;">
+                            <label>Parcelamento</label>
+
+                            <select name="Parcelas" id="parcelasVenda" disabled>
+                                <option value="1">1x</option>
+                                <option value="2">2x</option>
+                                <option value="3">3x</option>
+                                <option value="4">4x</option>
+                                <option value="5">5x</option>
+                                <option value="6" selected>6x</option>
+                            </select>
+                        </div>
+
+                        <div class="form-grupo" id="grupoCondicao" style="display:none; grid-column:1/-1;">
+                            <label>Condição de faturamento</label>
+
+                            <input type="text"
+                                   name="CondicaoPagamento"
+                                   id="condicaoPagamento"
+                                   placeholder="Ex.: 30 dias, 30/60 dias..."
+                                   maxlength="100"
+                                   disabled />
+                        </div>
+
+                    </div>
+
+                    <div class="venda-aviso" id="avisoPendente" style="display:none;">
+                        <span>ⓘ</span>
+                        <span>
+                            A venda será registrada como pendente e ficará aguardando validação.
+                            O estoque não será baixado neste momento.
+                        </span>
+                    </div>
+                </div>
+
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
-                <button type="submit" class="btn-salvar">Salvar Venda</button>
-            </div>
-        </form>
-    </div>
-</div>
+                <button type="button" class="btn-cancelar" onclick="fecharModal()">
+                    Cancelar
+                </button>
 
-<!-- Modal de Edição -->
-<div class="modal-overlay" id="modalEditar">
-    <div class="modal">
-        <div class="modal-header">
-            <h2>Editar Venda</h2>
-            <button type="button" class="modal-fechar" onclick="fecharModalEditar()">×</button>
-        </div>
-
-        <form method="post" asp-action="Atualizar">
-            @Html.AntiForgeryToken()
-
-            <input type="hidden" name="Id" id="editarId" />
-
-            <div class="form-grupo">
-                <label>ID do Cliente</label>
-                <input type="number" name="IdCliente" id="editarIdCliente" />
-            </div>
-
-            <div class="form-grupo">
-                <label>Valor (R$)</label>
-                <input type="number" name="Valor" id="editarValor" step="0.01" />
-            </div>
-
-            <div class="form-grupo">
-                <label>Status</label>
-                <select name="Status" id="editarStatus">
-                    <option value="Pendente">Pendente</option>
-                    <option value="Pago">Pago</option>
-                </select>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn-cancelar" onclick="fecharModalEditar()">Cancelar</button>
-                <button type="submit" class="btn-salvar">Salvar Alterações</button>
+                <button type="submit" class="btn-salvar">
+                    Revisar e salvar venda
+                </button>
             </div>
         </form>
     </div>
@@ -202,6 +831,17 @@
     <script src="~/js/pedido-itens.js" asp-append-version="true"></script>
 
     <script>
+        const clientesVenda = @Html.Raw(clientesJson);
+        const produtosVenda = @Html.Raw(produtosJson);
+
+        let carrinhoVenda = [];
+
+        const formatarMoeda = valor =>
+            Number(valor || 0).toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+
         function abrirModal() {
             document.getElementById('modalVenda').classList.add('aberto');
         }
@@ -214,32 +854,411 @@
             if (e.target === this) fecharModal();
         });
 
-        function abrirModalEditar(id) {
-            fetch(`/Vendas/Editar/${id}`)
-                .then(r => r.json())
-                .then(v => {
-                    document.getElementById('editarId').value = v.id;
-                    document.getElementById('editarIdCliente').value = v.idCliente ?? '';
-                    document.getElementById('editarValor').value = v.valorTotal;
-                    document.getElementById('editarStatus').value = v.status ?? 'Pendente';
-                    document.getElementById('modalEditar').classList.add('aberto');
-                });
-        }
+        // CLIENTES
 
-        function fecharModalEditar() {
-            document.getElementById('modalEditar').classList.remove('aberto');
-        }
+        const buscaCliente = document.getElementById('buscaClienteVenda');
+        const sugestoesClientes = document.getElementById('sugestoesClientes');
 
-        document.getElementById('modalEditar').addEventListener('click', function (e) {
-            if (e.target === this) fecharModalEditar();
+        buscaCliente.addEventListener('input', function () {
+            const termo = this.value.trim().toLowerCase();
+
+            sugestoesClientes.innerHTML = '';
+
+            if (termo.length < 2) {
+                sugestoesClientes.style.display = 'none';
+                return;
+            }
+
+            const encontrados = clientesVenda.filter(c => {
+                const campos = [
+                    c.nome,
+                    c.razaoSocial,
+                    c.nomeFantasia,
+                    c.cnpj
+                ];
+
+                return campos.some(campo =>
+                    String(campo || '').toLowerCase().includes(termo)
+                );
+            }).slice(0, 10);
+
+            encontrados.forEach(cliente => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'venda-sugestao';
+
+                const nome =
+                    cliente.nomeFantasia ||
+                    cliente.razaoSocial ||
+                    cliente.nome ||
+                    'Cliente';
+
+                item.textContent = `${nome} - ${cliente.cnpj || 'Sem CNPJ'}`;
+
+                item.addEventListener('click', () => selecionarCliente(cliente));
+
+                sugestoesClientes.appendChild(item);
+            });
+
+            if (encontrados.length === 0) {
+                const vazio = document.createElement('div');
+                vazio.className = 'venda-sugestao';
+                vazio.textContent = 'Nenhum cliente encontrado.';
+                sugestoesClientes.appendChild(vazio);
+            }
+
+            sugestoesClientes.style.display = 'block';
         });
 
-        // Busca por nº, cliente, data, valor ou produto + filtro de status
+        function selecionarCliente(cliente) {
+            document.getElementById('idClienteVenda').value = cliente.id;
+
+            const nome =
+                cliente.nomeFantasia ||
+                cliente.razaoSocial ||
+                cliente.nome ||
+                'Cliente';
+
+            document.getElementById('clienteSelecionadoNome').textContent = nome;
+
+            document.getElementById('clienteSelecionadoDocumento').textContent =
+                `CNPJ: ${cliente.cnpj || 'Não informado'}`;
+
+            document.getElementById('clienteSelecionado').style.display = 'flex';
+
+            buscaCliente.value = nome;
+            sugestoesClientes.style.display = 'none';
+        }
+
+        // PRODUTOS
+
+        const buscaProduto = document.getElementById('buscaProdutoVenda');
+        const sugestoesProdutos = document.getElementById('sugestoesProdutos');
+
+        buscaProduto.addEventListener('input', function () {
+            const termo = this.value.trim().toLowerCase();
+
+            sugestoesProdutos.innerHTML = '';
+
+            if (termo.length < 2) {
+                sugestoesProdutos.style.display = 'none';
+                return;
+            }
+
+            const encontrados = produtosVenda.filter(p => {
+                const nome = String(p.nome || '').toLowerCase();
+                const descricao = String(p.descricao || '').toLowerCase();
+
+                return nome.includes(termo) || descricao.includes(termo);
+            }).slice(0, 10);
+
+            encontrados.forEach(produto => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'venda-sugestao';
+
+                const preco = Number(produto.preco || 0);
+                const estoque = Number(produto.estoque || 0);
+
+                item.textContent =
+                    `${produto.nome} | ${formatarMoeda(preco)} | Estoque: ${estoque}`;
+
+                item.addEventListener('click', () => adicionarProduto(produto));
+
+                sugestoesProdutos.appendChild(item);
+            });
+
+            if (encontrados.length === 0) {
+                const vazio = document.createElement('div');
+                vazio.className = 'venda-sugestao';
+                vazio.textContent = 'Nenhum produto encontrado.';
+                sugestoesProdutos.appendChild(vazio);
+            }
+
+            sugestoesProdutos.style.display = 'block';
+        });
+
+        // ADICIONAR PRODUTO
+
+        function adicionarProduto(produto) {
+            const estoque = Number(produto.estoque || 0);
+
+            if (estoque <= 0) {
+                alert('Este produto está sem estoque disponível.');
+                return;
+            }
+
+            const existente = carrinhoVenda.find(i =>
+                String(i.idProduto) === String(produto.id)
+            );
+
+            if (existente) {
+                if (existente.quantidade >= existente.estoque) {
+                    alert('Quantidade maior que o estoque disponível.');
+                    return;
+                }
+
+                existente.quantidade++;
+            } else {
+                carrinhoVenda.push({
+                    idProduto: produto.id,
+                    nome: produto.nome,
+                    preco: Number(produto.preco || 0),
+                    estoque: estoque,
+                    quantidade: 1
+                });
+            }
+
+            buscaProduto.value = '';
+            sugestoesProdutos.style.display = 'none';
+
+            renderizarCarrinho();
+        }
+
+        // ALTERAR QUANTIDADE
+
+        function alterarQuantidade(idProduto, quantidade) {
+            const item = carrinhoVenda.find(i =>
+                String(i.idProduto) === String(idProduto)
+            );
+
+            if (!item) return;
+
+            quantidade = parseInt(quantidade);
+
+            if (!Number.isInteger(quantidade) || quantidade < 1) {
+                quantidade = 1;
+            }
+
+            if (quantidade > item.estoque) {
+                alert('A quantidade não pode ultrapassar o estoque disponível.');
+                quantidade = item.estoque;
+            }
+
+            item.quantidade = quantidade;
+
+            renderizarCarrinho();
+        }
+
+        // REMOVER PRODUTO
+
+        function removerProduto(idProduto) {
+            carrinhoVenda = carrinhoVenda.filter(i =>
+                String(i.idProduto) !== String(idProduto)
+            );
+
+            renderizarCarrinho();
+        }
+
+        // TOTAL
+
+        function calcularTotalVenda() {
+            return carrinhoVenda.reduce(
+                (total, item) => total + item.preco * item.quantidade,
+                0
+            );
+        }
+
+        // RENDERIZAR CARRINHO
+
+        function renderizarCarrinho() {
+            const container = document.getElementById('containerCarrinho');
+            const vazio = document.getElementById('carrinhoVazio');
+            const corpo = document.getElementById('itensCarrinho');
+
+            corpo.innerHTML = '';
+
+            if (carrinhoVenda.length === 0) {
+                container.style.display = 'none';
+                vazio.style.display = 'flex';
+            } else {
+                container.style.display = 'block';
+                vazio.style.display = 'none';
+
+                carrinhoVenda.forEach(item => {
+                    const tr = document.createElement('tr');
+
+                    const tdNome = document.createElement('td');
+                    tdNome.textContent = item.nome;
+
+                    const tdPreco = document.createElement('td');
+                    tdPreco.textContent = formatarMoeda(item.preco);
+
+                    const tdEstoque = document.createElement('td');
+                    tdEstoque.className = 'venda-estoque';
+                    tdEstoque.textContent = item.estoque;
+
+                    const tdQuantidade = document.createElement('td');
+                    const inputQuantidade = document.createElement('input');
+
+                    inputQuantidade.type = 'number';
+                    inputQuantidade.min = '1';
+                    inputQuantidade.max = item.estoque;
+                    inputQuantidade.value = item.quantidade;
+
+                    inputQuantidade.addEventListener('change', () => {
+                        alterarQuantidade(item.idProduto, inputQuantidade.value);
+                    });
+
+                    tdQuantidade.appendChild(inputQuantidade);
+
+                    const tdSubtotal = document.createElement('td');
+                    tdSubtotal.textContent =
+                        formatarMoeda(item.preco * item.quantidade);
+
+                    const tdRemover = document.createElement('td');
+                    const botaoRemover = document.createElement('button');
+
+                    botaoRemover.type = 'button';
+                    botaoRemover.className = 'venda-remover';
+                    botaoRemover.textContent = 'Remover';
+
+                    botaoRemover.addEventListener('click', () => {
+                        removerProduto(item.idProduto);
+                    });
+
+                    tdRemover.appendChild(botaoRemover);
+
+                    tr.append(
+                        tdNome,
+                        tdPreco,
+                        tdEstoque,
+                        tdQuantidade,
+                        tdSubtotal,
+                        tdRemover
+                    );
+
+                    corpo.appendChild(tr);
+                });
+            }
+
+            document.getElementById('totalVenda').textContent =
+                formatarMoeda(calcularTotalVenda());
+
+            atualizarCamposPagamento();
+        }
+
+        // FORMA DE PAGAMENTO
+
+        const formaPagamento = document.getElementById('formaPagamento');
+
+        formaPagamento.addEventListener('change', atualizarCamposPagamento);
+
+        function atualizarCamposPagamento() {
+            const forma = formaPagamento.value;
+
+            const grupoParcelas = document.getElementById('grupoParcelas');
+            const grupoCondicao = document.getElementById('grupoCondicao');
+
+            const condicao = document.getElementById('condicaoPagamento');
+            const parcelas = document.getElementById('parcelasVenda');
+
+            const avisoPendente = document.getElementById('avisoPendente');
+
+            const cartao = forma === 'Cartão de crédito';
+            const faturado = forma === 'Faturado';
+
+            grupoParcelas.style.display = cartao ? 'block' : 'none';
+            grupoCondicao.style.display = faturado ? 'block' : 'none';
+
+            parcelas.disabled = !cartao;
+            parcelas.required = cartao;
+
+            condicao.disabled = !faturado;
+            condicao.required = faturado;
+
+            avisoPendente.style.display = forma ? 'flex' : 'none';
+        }
+
+        // ENVIO DA VENDA
+
+        document.getElementById('formNovaVenda').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const idCliente = document.getElementById('idClienteVenda').value;
+            const forma = formaPagamento.value;
+            const condicao = document.getElementById('condicaoPagamento').value.trim();
+
+            if (!idCliente) {
+                alert('Selecione um cliente antes de continuar.');
+                return;
+            }
+
+            if (carrinhoVenda.length === 0) {
+                alert('Adicione pelo menos um produto à venda.');
+                return;
+            }
+
+            if (!forma) {
+                alert('Selecione a forma de pagamento.');
+                return;
+            }
+
+            if (forma === 'Faturado' && !condicao) {
+                alert('Informe a condição de faturamento.');
+                return;
+            }
+
+            const total = calcularTotalVenda();
+
+            const resumoItens = carrinhoVenda.map(item =>
+                `${item.quantidade}x ${item.nome} - ${formatarMoeda(item.preco * item.quantidade)}`
+            ).join('\n');
+
+            const parcelas = document.getElementById('parcelasVenda').value;
+
+            let resumoPagamento = forma;
+
+            if (forma === 'Cartão de crédito') {
+                resumoPagamento += ` em ${parcelas}x`;
+            }
+
+            if (forma === 'Faturado') {
+                resumoPagamento += ` - ${condicao}`;
+            }
+
+            const confirmacao =
+                `CONFIRMAR VENDA\n\n` +
+                `ITENS:\n${resumoItens}\n\n` +
+                `TOTAL: ${formatarMoeda(total)}\n` +
+                `PAGAMENTO: ${resumoPagamento}\n\n` +
+                `A venda será cadastrada como PENDENTE e aguardará validação.\n\n` +
+                `Deseja continuar?`;
+
+            if (!confirm(confirmacao)) {
+                return;
+            }
+
+            this.querySelectorAll('.item-venda-hidden')
+                .forEach(campo => campo.remove());
+
+            carrinhoVenda.forEach((item, index) => {
+                const idProduto = document.createElement('input');
+                idProduto.type = 'hidden';
+                idProduto.name = `Itens[${index}].IdProduto`;
+                idProduto.value = item.idProduto;
+                idProduto.className = 'item-venda-hidden';
+
+                const quantidade = document.createElement('input');
+                quantidade.type = 'hidden';
+                quantidade.name = `Itens[${index}].Quantidade`;
+                quantidade.value = item.quantidade;
+                quantidade.className = 'item-venda-hidden';
+
+                this.appendChild(idProduto);
+                this.appendChild(quantidade);
+            });
+
+            this.submit();
+        });
+
+        // BUSCA DA TABELA
+
         function filtrarTabela() {
             filtrarPedidos(
                 'tabelaVendas',
                 document.getElementById('campoBusca').value,
-                document.getElementById('filtroStatus').value
+                ''
             );
         }
     </script>

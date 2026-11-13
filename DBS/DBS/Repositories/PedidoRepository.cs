@@ -149,6 +149,92 @@ namespace DBS.Repositories
             return null;
         }
 
+        // NOVA VENDA PELO SISTEMA WEB
+        // Sempre cria a venda como Pendente.
+        // Valida o estoque, mas não realiza a baixa.
+
+        public int RegistrarVendaPendente(Pedido pedido, int idVendedor)
+        {
+            if (pedido.IdCliente <= 0)
+                throw new InvalidOperationException("Selecione um cliente.");
+
+            if (idVendedor <= 0)
+                throw new InvalidOperationException("Vendedor inválido.");
+
+            if (pedido.Itens == null || pedido.Itens.Count == 0)
+                throw new InvalidOperationException(
+                    "Adicione pelo menos um produto à venda.");
+
+            ValidarPagamento(pedido);
+
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            using var transaction = conn.BeginTransaction();
+
+            try
+            {
+                ValidarCliente(conn, transaction, pedido.IdCliente.Value);
+
+                var itensValidados = ObterItensValidados(
+                    conn,
+                    transaction,
+                    pedido.Itens);
+
+                decimal valorTotal = itensValidados.Sum(
+                    item => item.Preco * item.Quantidade);
+
+                using var cmdPedido = new NpgsqlCommand(@"
+                    INSERT INTO pedido
+                        (id_cliente, id_vendedor, status, valor,
+                         forma_pagamento, parcelas, condicao_pagamento)
+                    VALUES
+                        (@idCliente, @idVendedor, 'Pendente', @valor,
+                         @formaPagamento, @parcelas, @condicaoPagamento)
+                    RETURNING id",
+                    conn,
+                    transaction);
+
+                cmdPedido.Parameters.AddWithValue(
+                    "@idCliente", pedido.IdCliente.Value);
+
+                cmdPedido.Parameters.AddWithValue(
+                    "@idVendedor", idVendedor);
+
+                cmdPedido.Parameters.AddWithValue(
+                    "@valor", valorTotal);
+
+                cmdPedido.Parameters.AddWithValue(
+                    "@formaPagamento", pedido.FormaPagamento!);
+
+                cmdPedido.Parameters.AddWithValue(
+                    "@parcelas",
+                    (object?)pedido.Parcelas ?? DBNull.Value);
+
+                cmdPedido.Parameters.AddWithValue(
+                    "@condicaoPagamento",
+                    (object?)pedido.CondicaoPagamento ?? DBNull.Value);
+
+                int idPedido = Convert.ToInt32(
+                    cmdPedido.ExecuteScalar());
+
+                InserirItens(
+                    conn,
+                    transaction,
+                    idPedido,
+                    itensValidados);
+
+                transaction.Commit();
+
+                return idPedido;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
         public int RegistrarPedidoMobile(
             int idCliente,
             int idVendedor,
@@ -177,53 +263,15 @@ namespace DBS.Repositories
 
             try
             {
-                var itensValidados =
-                    new List<(int IdProduto, int Quantidade, decimal Preco)>();
+                ValidarCliente(conn, transaction, idCliente);
 
-                decimal valorTotal = 0;
+                var itensValidados = ObterItensValidados(
+                    conn,
+                    transaction,
+                    itens);
 
-                foreach (var item in itens)
-                {
-                    if (!item.IdProduto.HasValue ||
-                        item.IdProduto.Value <= 0)
-                    {
-                        throw new InvalidOperationException(
-                            "Produto inválido.");
-                    }
-
-                    if (item.Quantidade <= 0)
-                    {
-                        throw new InvalidOperationException(
-                            "Quantidade inválida.");
-                    }
-
-                    using var cmdProduto = new NpgsqlCommand(@"
-                        SELECT preco
-                        FROM produto
-                        WHERE id = @idProduto",
-                        conn, transaction);
-
-                    cmdProduto.Parameters.AddWithValue(
-                        "@idProduto",
-                        item.IdProduto.Value);
-
-                    var resultado = cmdProduto.ExecuteScalar();
-
-                    if (resultado == null || resultado == DBNull.Value)
-                    {
-                        throw new InvalidOperationException(
-                            "Um dos produtos não foi encontrado.");
-                    }
-
-                    decimal preco = Convert.ToDecimal(resultado);
-
-                    itensValidados.Add((
-                        item.IdProduto.Value,
-                        item.Quantidade,
-                        preco));
-
-                    valorTotal += preco * item.Quantidade;
-                }
+                decimal valorTotal = itensValidados.Sum(
+                    item => item.Preco * item.Quantidade);
 
                 using var cmdPedido = new NpgsqlCommand(@"
                     INSERT INTO pedido
@@ -232,7 +280,9 @@ namespace DBS.Repositories
                     VALUES
                         (@idCliente, @idVendedor, 'Pendente',
                          @valor, @formaPagamento, @parcelas)
-                    RETURNING id", conn, transaction);
+                    RETURNING id",
+                    conn,
+                    transaction);
 
                 cmdPedido.Parameters.AddWithValue(
                     "@idCliente", idCliente);
@@ -253,31 +303,11 @@ namespace DBS.Repositories
                 int idPedido = Convert.ToInt32(
                     cmdPedido.ExecuteScalar());
 
-                foreach (var item in itensValidados)
-                {
-                    using var cmdItem = new NpgsqlCommand(@"
-                        INSERT INTO item_pedido
-                            (id_pedido, id_produto,
-                             quantidade, preco_unitario)
-                        VALUES
-                            (@idPedido, @idProduto,
-                             @quantidade, @preco)",
-                        conn, transaction);
-
-                    cmdItem.Parameters.AddWithValue(
-                        "@idPedido", idPedido);
-
-                    cmdItem.Parameters.AddWithValue(
-                        "@idProduto", item.IdProduto);
-
-                    cmdItem.Parameters.AddWithValue(
-                        "@quantidade", item.Quantidade);
-
-                    cmdItem.Parameters.AddWithValue(
-                        "@preco", item.Preco);
-
-                    cmdItem.ExecuteNonQuery();
-                }
+                InserirItens(
+                    conn,
+                    transaction,
+                    idPedido,
+                    itensValidados);
 
                 transaction.Commit();
 
@@ -321,6 +351,7 @@ namespace DBS.Repositories
             return Convert.ToDecimal(cmd.ExecuteScalar());
         }
 
+        // Mantido para compatibilidade com o cadastro antigo de Ordens.
         public void Insert(Pedido pedido)
         {
             ValidarPagamento(pedido);
@@ -373,14 +404,16 @@ namespace DBS.Repositories
             {
                 var cmdItens = new NpgsqlCommand(
                     "DELETE FROM item_pedido WHERE id_pedido = @id",
-                    conn, transaction);
+                    conn,
+                    transaction);
 
                 cmdItens.Parameters.AddWithValue("@id", id);
                 cmdItens.ExecuteNonQuery();
 
                 var cmd = new NpgsqlCommand(
                     "DELETE FROM pedido WHERE id = @id",
-                    conn, transaction);
+                    conn,
+                    transaction);
 
                 cmd.Parameters.AddWithValue("@id", id);
                 cmd.ExecuteNonQuery();
@@ -508,6 +541,188 @@ namespace DBS.Repositories
             cmd.ExecuteNonQuery();
         }
 
+        // APROVAÇÃO DO PAGAMENTO DEMONSTRATIVO
+        // Atualiza o pedido original.
+        // Não cria outra venda e não altera os itens cadastrados.
+        // A baixa de estoque ocorre uma única vez.
+
+        public void AprovarPagamentoDemonstrativo(int id)
+        {
+            if (id <= 0)
+                throw new InvalidOperationException("Pedido inválido.");
+
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            using var transaction = conn.BeginTransaction();
+
+            try
+            {
+                int? idCliente;
+                string statusAtual;
+                string formaPagamento;
+
+                // Bloqueia o pedido para impedir duas aprovações simultâneas.
+                using (var cmdPedido = new NpgsqlCommand(@"
+                    SELECT id_cliente, status, forma_pagamento
+                    FROM pedido
+                    WHERE id = @id
+                    FOR UPDATE",
+                    conn,
+                    transaction))
+                {
+                    cmdPedido.Parameters.AddWithValue("@id", id);
+
+                    using var reader = cmdPedido.ExecuteReader();
+
+                    if (!reader.Read())
+                        throw new InvalidOperationException(
+                            "O pedido não foi encontrado.");
+
+                    idCliente = reader.IsDBNull(0)
+                        ? null
+                        : reader.GetInt32(0);
+
+                    statusAtual = reader.IsDBNull(1)
+                        ? "Pendente"
+                        : reader.GetString(1);
+
+                    formaPagamento = reader.IsDBNull(2)
+                        ? string.Empty
+                        : reader.GetString(2);
+                }
+
+                if (statusAtual.Equals(
+                    "Pago",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException(
+                        "Este pedido já foi aprovado anteriormente.");
+                }
+
+                if (!statusAtual.Equals(
+                    "Pendente",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException(
+                        "Este pedido não está mais aguardando pagamento.");
+                }
+
+                if (!formaPagamento.Equals(
+                    "Cartão de crédito",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException(
+                        "Este pedido não foi cadastrado para pagamento com cartão.");
+                }
+
+                if (!idCliente.HasValue || idCliente.Value <= 0)
+                    throw new InvalidOperationException(
+                        "O cliente deste pedido é inválido.");
+
+                ValidarCliente(conn, transaction, idCliente.Value);
+
+                // Recupera os itens originais salvos no pedido.
+                var itensPedido = new List<ItemPedidoResumo>();
+
+                using (var cmdItens = new NpgsqlCommand(@"
+                    SELECT id_produto, quantidade
+                    FROM item_pedido
+                    WHERE id_pedido = @id
+                    ORDER BY id",
+                    conn,
+                    transaction))
+                {
+                    cmdItens.Parameters.AddWithValue("@id", id);
+
+                    using var reader = cmdItens.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        itensPedido.Add(new ItemPedidoResumo
+                        {
+                            IdProduto = reader.IsDBNull(0)
+                                ? null
+                                : reader.GetInt32(0),
+                            Quantidade = reader.GetInt32(1)
+                        });
+                    }
+                }
+
+                if (itensPedido.Count == 0)
+                    throw new InvalidOperationException(
+                        "Este pedido não possui produtos para aprovar.");
+
+                // Valida novamente os produtos e o estoque atual.
+                var itensValidados = ObterItensValidados(
+                    conn,
+                    transaction,
+                    itensPedido);
+
+                decimal valorTotal = itensValidados.Sum(
+                    item => item.Preco * item.Quantidade);
+
+                // Baixa de estoque dentro da mesma transação.
+                foreach (var item in itensValidados)
+                {
+                    using var cmdEstoque = new NpgsqlCommand(@"
+                        UPDATE produto
+                        SET estoque = estoque - @quantidade
+                        WHERE id = @idProduto
+                          AND estoque >= @quantidade",
+                        conn,
+                        transaction);
+
+                    cmdEstoque.Parameters.AddWithValue(
+                        "@idProduto", item.IdProduto);
+
+                    cmdEstoque.Parameters.AddWithValue(
+                        "@quantidade", item.Quantidade);
+
+                    int linhasAfetadas = cmdEstoque.ExecuteNonQuery();
+
+                    if (linhasAfetadas == 0)
+                    {
+                        throw new InvalidOperationException(
+                            "Estoque insuficiente para um dos produtos. " +
+                            "O pagamento não foi aprovado.");
+                    }
+                }
+
+                // Só altera para Pago depois de validar e baixar todo o estoque.
+                using (var cmdAtualizar = new NpgsqlCommand(@"
+                    UPDATE pedido
+                    SET status = 'Pago',
+                        valor = @valor
+                    WHERE id = @id
+                      AND status = 'Pendente'",
+                    conn,
+                    transaction))
+                {
+                    cmdAtualizar.Parameters.AddWithValue(
+                        "@valor", valorTotal);
+
+                    cmdAtualizar.Parameters.AddWithValue("@id", id);
+
+                    int linhasAfetadas = cmdAtualizar.ExecuteNonQuery();
+
+                    if (linhasAfetadas == 0)
+                        throw new InvalidOperationException(
+                            "Não foi possível atualizar o status do pedido.");
+                }
+
+                transaction.Commit();
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        // Atualiza uma ordem e realiza a baixa do estoque
+        // somente quando ela passa para o status Pago.
+
         public void AtualizarComItens(Pedido pedido)
         {
             if (pedido.Id <= 0)
@@ -545,76 +760,78 @@ namespace DBS.Repositories
 
             try
             {
-                using (var cmdCliente = new NpgsqlCommand(@"
-                    SELECT EXISTS(
-                        SELECT 1 FROM cliente WHERE id = @id
-                    )", conn, transaction))
+                string statusAtual;
+
+                using (var cmdStatus = new NpgsqlCommand(@"
+                    SELECT status
+                    FROM pedido
+                    WHERE id = @id
+                    FOR UPDATE",
+                    conn,
+                    transaction))
                 {
-                    cmdCliente.Parameters.AddWithValue(
-                        "@id", pedido.IdCliente.Value);
+                    cmdStatus.Parameters.AddWithValue("@id", pedido.Id);
 
-                    bool clienteExiste =
-                        Convert.ToBoolean(cmdCliente.ExecuteScalar());
-
-                    if (!clienteExiste)
-                        throw new InvalidOperationException(
-                            "O cliente selecionado não foi encontrado.");
-                }
-
-                var itensValidados =
-                    new List<(int IdProduto, int Quantidade, decimal Preco)>();
-
-                var produtosAdicionados = new HashSet<int>();
-                decimal valorTotal = 0;
-
-                foreach (var item in pedido.Itens)
-                {
-                    if (!item.IdProduto.HasValue ||
-                        item.IdProduto.Value <= 0)
-                    {
-                        throw new InvalidOperationException(
-                            "Existe um produto inválido no pedido.");
-                    }
-
-                    if (item.Quantidade <= 0)
-                    {
-                        throw new InvalidOperationException(
-                            "A quantidade dos produtos deve ser maior que zero.");
-                    }
-
-                    int idProduto = item.IdProduto.Value;
-
-                    if (!produtosAdicionados.Add(idProduto))
-                    {
-                        throw new InvalidOperationException(
-                            "O mesmo produto não pode ser adicionado duas vezes. Ajuste a quantidade.");
-                    }
-
-                    using var cmdProduto = new NpgsqlCommand(@"
-                        SELECT preco
-                        FROM produto
-                        WHERE id = @idProduto
-                        FOR SHARE", conn, transaction);
-
-                    cmdProduto.Parameters.AddWithValue(
-                        "@idProduto", idProduto);
-
-                    var resultado = cmdProduto.ExecuteScalar();
+                    var resultado = cmdStatus.ExecuteScalar();
 
                     if (resultado == null || resultado == DBNull.Value)
-                    {
                         throw new InvalidOperationException(
-                            "Um dos produtos selecionados não foi encontrado.");
+                            "O pedido não foi encontrado.");
+
+                    statusAtual = Convert.ToString(resultado) ?? "Pendente";
+                }
+
+                if (statusAtual.Equals(
+                    "Pago",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException(
+                        "Esta ordem já foi paga e aprovada. " +
+                        "Não é possível aprová-la novamente ou alterar seus itens.");
+                }
+
+                ValidarCliente(
+                    conn,
+                    transaction,
+                    pedido.IdCliente.Value);
+
+                var itensValidados = ObterItensValidados(
+                    conn,
+                    transaction,
+                    pedido.Itens);
+
+                decimal valorTotal = itensValidados.Sum(
+                    item => item.Preco * item.Quantidade);
+
+                if (status.Equals(
+                    "Pago",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    foreach (var item in itensValidados)
+                    {
+                        using var cmdEstoque = new NpgsqlCommand(@"
+                            UPDATE produto
+                            SET estoque = estoque - @quantidade
+                            WHERE id = @idProduto
+                              AND estoque >= @quantidade",
+                            conn,
+                            transaction);
+
+                        cmdEstoque.Parameters.AddWithValue(
+                            "@idProduto", item.IdProduto);
+
+                        cmdEstoque.Parameters.AddWithValue(
+                            "@quantidade", item.Quantidade);
+
+                        int linhasAfetadas = cmdEstoque.ExecuteNonQuery();
+
+                        if (linhasAfetadas == 0)
+                        {
+                            throw new InvalidOperationException(
+                                "Estoque insuficiente para um dos produtos. " +
+                                "A ordem não foi aprovada.");
+                        }
                     }
-
-                    decimal preco = Convert.ToDecimal(resultado);
-
-                    itensValidados.Add((
-                        idProduto,
-                        item.Quantidade,
-                        preco));
-
-                    valorTotal += preco * item.Quantidade;
                 }
 
                 using (var cmdPedido = new NpgsqlCommand(@"
@@ -625,7 +842,9 @@ namespace DBS.Repositories
                         forma_pagamento = @formaPagamento,
                         parcelas = @parcelas,
                         condicao_pagamento = @condicaoPagamento
-                    WHERE id = @id", conn, transaction))
+                    WHERE id = @id",
+                    conn,
+                    transaction))
                 {
                     cmdPedido.Parameters.AddWithValue(
                         "@idCliente", pedido.IdCliente.Value);
@@ -660,7 +879,8 @@ namespace DBS.Repositories
                 using (var cmdExcluir = new NpgsqlCommand(@"
                     DELETE FROM item_pedido
                     WHERE id_pedido = @idPedido",
-                    conn, transaction))
+                    conn,
+                    transaction))
                 {
                     cmdExcluir.Parameters.AddWithValue(
                         "@idPedido", pedido.Id);
@@ -668,29 +888,11 @@ namespace DBS.Repositories
                     cmdExcluir.ExecuteNonQuery();
                 }
 
-                foreach (var item in itensValidados)
-                {
-                    using var cmdItem = new NpgsqlCommand(@"
-                        INSERT INTO item_pedido
-                            (id_pedido, id_produto, quantidade, preco_unitario)
-                        VALUES
-                            (@idPedido, @idProduto, @quantidade, @preco)",
-                        conn, transaction);
-
-                    cmdItem.Parameters.AddWithValue(
-                        "@idPedido", pedido.Id);
-
-                    cmdItem.Parameters.AddWithValue(
-                        "@idProduto", item.IdProduto);
-
-                    cmdItem.Parameters.AddWithValue(
-                        "@quantidade", item.Quantidade);
-
-                    cmdItem.Parameters.AddWithValue(
-                        "@preco", item.Preco);
-
-                    cmdItem.ExecuteNonQuery();
-                }
+                InserirItens(
+                    conn,
+                    transaction,
+                    pedido.Id,
+                    itensValidados);
 
                 transaction.Commit();
             }
@@ -698,6 +900,142 @@ namespace DBS.Repositories
             {
                 transaction.Rollback();
                 throw;
+            }
+        }
+
+        // VALIDA CLIENTE
+
+        private static void ValidarCliente(
+            NpgsqlConnection conn,
+            NpgsqlTransaction transaction,
+            int idCliente)
+        {
+            using var cmd = new NpgsqlCommand(@"
+                SELECT EXISTS(
+                    SELECT 1
+                    FROM cliente
+                    WHERE id = @id
+                )",
+                conn,
+                transaction);
+
+            cmd.Parameters.AddWithValue("@id", idCliente);
+
+            bool existe = Convert.ToBoolean(cmd.ExecuteScalar());
+
+            if (!existe)
+                throw new InvalidOperationException(
+                    "O cliente selecionado não foi encontrado.");
+        }
+
+        // VALIDA PRODUTOS, PREÇOS E ESTOQUE.
+
+        private static List<(int IdProduto, int Quantidade, decimal Preco)>
+            ObterItensValidados(
+                NpgsqlConnection conn,
+                NpgsqlTransaction transaction,
+                List<ItemPedidoResumo> itens)
+        {
+            var itensValidados =
+                new List<(int IdProduto, int Quantidade, decimal Preco)>();
+
+            var produtosAdicionados = new HashSet<int>();
+
+            foreach (var item in itens)
+            {
+                if (!item.IdProduto.HasValue ||
+                    item.IdProduto.Value <= 0)
+                {
+                    throw new InvalidOperationException(
+                        "Existe um produto inválido no pedido.");
+                }
+
+                if (item.Quantidade <= 0)
+                {
+                    throw new InvalidOperationException(
+                        "A quantidade dos produtos deve ser maior que zero.");
+                }
+
+                int idProduto = item.IdProduto.Value;
+
+                if (!produtosAdicionados.Add(idProduto))
+                {
+                    throw new InvalidOperationException(
+                        "O mesmo produto não pode ser adicionado duas vezes. " +
+                        "Ajuste a quantidade.");
+                }
+
+                using var cmdProduto = new NpgsqlCommand(@"
+                    SELECT preco, estoque
+                    FROM produto
+                    WHERE id = @idProduto
+                    FOR UPDATE",
+                    conn,
+                    transaction);
+
+                cmdProduto.Parameters.AddWithValue(
+                    "@idProduto", idProduto);
+
+                using var reader = cmdProduto.ExecuteReader();
+
+                if (!reader.Read())
+                {
+                    throw new InvalidOperationException(
+                        "Um dos produtos selecionados não foi encontrado.");
+                }
+
+                decimal preco = reader.GetDecimal(0);
+                int estoque = reader.GetInt32(1);
+
+                reader.Close();
+
+                if (estoque < item.Quantidade)
+                {
+                    throw new InvalidOperationException(
+                        $"Estoque insuficiente para o produto ID {idProduto}. " +
+                        $"Disponível: {estoque}.");
+                }
+
+                itensValidados.Add((
+                    idProduto,
+                    item.Quantidade,
+                    preco));
+            }
+
+            return itensValidados;
+        }
+
+        // INSERE OS ITENS DO PEDIDO
+
+        private static void InserirItens(
+            NpgsqlConnection conn,
+            NpgsqlTransaction transaction,
+            int idPedido,
+            List<(int IdProduto, int Quantidade, decimal Preco)> itens)
+        {
+            foreach (var item in itens)
+            {
+                using var cmdItem = new NpgsqlCommand(@"
+                    INSERT INTO item_pedido
+                        (id_pedido, id_produto, quantidade, preco_unitario)
+                    VALUES
+                        (@idPedido, @idProduto, @quantidade, @preco)",
+                    conn,
+                    transaction);
+
+                cmdItem.Parameters.AddWithValue(
+                    "@idPedido", idPedido);
+
+                cmdItem.Parameters.AddWithValue(
+                    "@idProduto", item.IdProduto);
+
+                cmdItem.Parameters.AddWithValue(
+                    "@quantidade", item.Quantidade);
+
+                cmdItem.Parameters.AddWithValue(
+                    "@preco", item.Preco);
+
+                cmdItem.ExecuteNonQuery();
             }
         }
 
