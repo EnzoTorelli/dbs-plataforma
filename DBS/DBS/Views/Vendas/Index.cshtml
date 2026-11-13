@@ -76,8 +76,13 @@
             }
 
         #modalVenda .modal-fechar {
-            color: #71717a !important;
+            background: transparent !important;
+            border: none !important;
+            color: #64748b !important;
             font-size: 27px;
+            line-height: 1;
+            padding: 2px 8px;
+            border-radius: 6px;
         }
 
             #modalVenda .modal-fechar:hover {
@@ -104,25 +109,26 @@
         /* TRÊS SEÇÕES ESCURAS */
         #modalVenda .venda-secao {
             position: relative;
-            background: #18181b !important;
-            color: #ffffff !important;
+            background: #ffffff !important;
+            color: #0f172a !important;
             padding: 17px 19px;
             border-radius: 10px;
             margin-bottom: 14px;
-            border: 1px solid #27272a;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, .08);
+            border: 1px solid #dce4ed;
+            border-left: 4px solid #0d9488;
+            box-shadow: 0 1px 4px rgba(15, 23, 42, .06);
         }
 
             #modalVenda .venda-secao h3 {
                 display: flex;
                 align-items: center;
                 gap: 10px;
-                color: #ffffff !important;
+                color: #0f172a !important;
                 font-size: 15px;
                 font-weight: 700;
                 margin: 0 0 15px;
                 padding-bottom: 12px;
-                border-bottom: 1px solid #3f3f46;
+                border-bottom: 1px solid #e2e8f0;
             }
 
         #modalVenda .venda-numero {
@@ -133,9 +139,9 @@
             height: 27px;
             flex-shrink: 0;
             border-radius: 7px;
-            background: rgba(13, 148, 136, .20);
-            color: #5eead4;
-            border: 1px solid rgba(13, 148, 136, .35);
+            background: #ccfbf1;
+            color: #0f766e;
+            border: 1px solid #99f6e4;
             font-size: 13px;
             font-weight: 800;
         }
@@ -147,7 +153,7 @@
 
             #modalVenda .form-grupo label {
                 display: block;
-                color: #e4e4e7 !important;
+                color: #334155 !important;
                 font-size: 13px;
                 font-weight: 650;
                 margin-bottom: 7px;
@@ -161,14 +167,14 @@
                 padding: 9px 12px;
                 background: #ffffff !important;
                 color: #18181b !important;
-                border: 1px solid #d4d4d8 !important;
+                border: 1px solid #cbd5e1 !important;
                 border-radius: 7px;
                 font-size: 14px;
                 transition: border-color .2s, box-shadow .2s;
             }
 
                 #modalVenda .form-grupo input::placeholder {
-                    color: #a1a1aa !important;
+                    color: #64748b !important;
                     opacity: 1;
                 }
 
@@ -367,10 +373,10 @@
             min-height: 55px;
             padding: 12px;
             margin-top: 10px;
-            border: 1px dashed #52525b;
+            border: 1px dashed #cbd5e1;
             border-radius: 7px;
-            color: #d4d4d8 !important;
-            background: #27272a !important;
+            color: #64748b !important;
+            background: #f8fafc !important;
             font-size: 14px;
         }
 
@@ -382,16 +388,16 @@
             gap: 12px;
             padding: 12px 14px;
             margin-top: 12px;
-            background: rgba(13, 148, 136, .12) !important;
-            border: 1px solid rgba(13, 148, 136, .35);
+            background: #f0fdfa !important;
+            border: 1px solid #99f6e4;
             border-radius: 8px;
-            color: #5eead4 !important;
+            color: #0f766e !important;
             font-size: 14px;
             font-weight: 700;
         }
 
             #modalVenda .venda-total span:last-child {
-                color: #5eead4 !important;
+                color: #0f766e !important;
                 font-size: 20px;
                 font-weight: 800;
             }
@@ -461,6 +467,131 @@
                     background: #0f766e !important;
                     border-color: #0f766e !important;
                 }
+
+        /* TEMA ESCURO — modal Nova Venda */
+        html[data-tema="escuro"] #modalVenda .modal,
+        html[data-tema="escuro"] #modalVenda .modal > form,
+        html[data-tema="escuro"] #modalVenda .modal-header,
+        html[data-tema="escuro"] #modalVenda .venda-formulario,
+        html[data-tema="escuro"] #modalVenda .modal-footer {
+            background: #1e2232 !important;
+            border-color: #2e3347 !important;
+        }
+
+        html[data-tema="escuro"] #modalVenda .modal-header h2 { color: #e2e8f0 !important; }
+        html[data-tema="escuro"] #modalVenda .modal-fechar { color: #94a3b8 !important; }
+        html[data-tema="escuro"] #modalVenda .modal-fechar:hover { color: #5eead4 !important; }
+
+        html[data-tema="escuro"] #modalVenda .venda-secao {
+            background: #252839 !important;
+            color: #e2e8f0 !important;
+            border-color: #2e3347 !important;
+            border-left-color: #0d9488 !important;
+            box-shadow: none;
+        }
+
+        html[data-tema="escuro"] #modalVenda .venda-secao h3 {
+            color: #e2e8f0 !important;
+            border-bottom-color: #2e3347;
+        }
+
+        html[data-tema="escuro"] #modalVenda .venda-numero {
+            background: rgba(13, 148, 136, .22);
+            color: #5eead4;
+            border-color: rgba(13, 148, 136, .45);
+        }
+
+        html[data-tema="escuro"] #modalVenda .form-grupo label { color: #cbd5e1 !important; }
+
+        html[data-tema="escuro"] #modalVenda .form-grupo input,
+        html[data-tema="escuro"] #modalVenda .form-grupo select,
+        html[data-tema="escuro"] #modalVenda .venda-carrinho input {
+            background: #1a1d27 !important;
+            color: #e2e8f0 !important;
+            border-color: #3b4260 !important;
+        }
+
+        html[data-tema="escuro"] #modalVenda .form-grupo input::placeholder { color: #94a3b8 !important; }
+        html[data-tema="escuro"] #modalVenda .form-grupo select option { background: #1a1d27; color: #e2e8f0; }
+
+        html[data-tema="escuro"] #modalVenda .venda-sugestoes {
+            background: #1a1d27 !important;
+            border-color: #3b4260;
+        }
+
+        html[data-tema="escuro"] #modalVenda .venda-sugestao {
+            background: #1a1d27 !important;
+            color: #e2e8f0 !important;
+            border-bottom-color: #2e3347;
+        }
+
+        html[data-tema="escuro"] #modalVenda .venda-sugestao:hover {
+            background: #252839 !important;
+            color: #5eead4 !important;
+        }
+
+        html[data-tema="escuro"] #modalVenda .venda-selecionado {
+            background: rgba(13, 148, 136, .15) !important;
+            border-color: rgba(13, 148, 136, .45);
+            color: #99f6e4 !important;
+        }
+
+        html[data-tema="escuro"] #modalVenda .venda-cliente-icone { background: rgba(13, 148, 136, .3); color: #5eead4; }
+        html[data-tema="escuro"] #modalVenda .venda-cliente-dados strong { color: #e2e8f0 !important; }
+        html[data-tema="escuro"] #modalVenda .venda-cliente-dados span { color: #94a3b8 !important; }
+
+        html[data-tema="escuro"] #modalVenda .venda-carrinho-container { border-color: #2e3347; }
+        html[data-tema="escuro"] #modalVenda .venda-carrinho { background: #1a1d27 !important; }
+
+        html[data-tema="escuro"] #modalVenda .venda-carrinho th {
+            background: #252839 !important;
+            color: #94a3b8 !important;
+            border-bottom-color: #2e3347;
+        }
+
+        html[data-tema="escuro"] #modalVenda .venda-carrinho td {
+            background: #1a1d27 !important;
+            color: #e2e8f0 !important;
+            border-bottom-color: #2e3347;
+        }
+
+        html[data-tema="escuro"] #modalVenda .venda-carrinho tbody tr:hover td { background: #252839 !important; }
+        html[data-tema="escuro"] #modalVenda .venda-estoque { color: #94a3b8 !important; }
+
+        html[data-tema="escuro"] #modalVenda .venda-remover {
+            background: rgba(248, 113, 113, .12) !important;
+            border-color: rgba(248, 113, 113, .4);
+            color: #fca5a5 !important;
+        }
+
+        html[data-tema="escuro"] #modalVenda #carrinhoVazio {
+            background: #1a1d27 !important;
+            border-color: #3b4260;
+            color: #94a3b8 !important;
+        }
+
+        html[data-tema="escuro"] #modalVenda .venda-total {
+            background: rgba(13, 148, 136, .15) !important;
+            border-color: rgba(13, 148, 136, .45);
+            color: #5eead4 !important;
+        }
+
+        html[data-tema="escuro"] #modalVenda .venda-total span:last-child { color: #5eead4 !important; }
+
+        html[data-tema="escuro"] #modalVenda .venda-aviso {
+            background: rgba(250, 204, 21, .10) !important;
+            border-color: rgba(250, 204, 21, .35);
+            color: #fde68a !important;
+        }
+
+        html[data-tema="escuro"] #modalVenda .modal-footer .btn-cancelar {
+            background: transparent !important;
+            color: #cbd5e1 !important;
+            border-color: #3b4260 !important;
+        }
+
+        html[data-tema="escuro"] #modalVenda .modal-footer .btn-cancelar:hover { background: #252839 !important; }
+        html[data-tema="escuro"] .venda-link { color: #7dd3fc; }
 
         /* MENSAGENS */
         .venda-mensagem {

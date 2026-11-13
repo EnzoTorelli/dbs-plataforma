@@ -209,6 +209,15 @@ html[data-tema="escuro"] {
     --dk-muted:   #94a3b8;
     --dk-accent:  #3b82f6;
     --dk-danger:  #f87171;
+
+    /* Variáveis globais do site no tema escuro: corrige o texto azul-escuro
+       (--cor-texto = #0f172a) usado em itens, tabelas internas etc. */
+    --cor-fundo:        #0f1117;
+    --cor-superficie:   #1e2232;
+    --cor-borda:        #2e3347;
+    --cor-texto:        #e2e8f0;
+    --cor-texto-suave:  #94a3b8;
+    --cor-texto-fraco:  #94a3b8;
 }
 
 /* Fundo global — elimina branco ao rolar */
